@@ -62,7 +62,7 @@ namespace AmpHelper.CLI
                 .MapResult(
                     (TweakOptions.TweakEnableOptions options) =>
                     {
-                        tweak.SetPath(options.InputPath.FullName).DisableTweak();
+                        tweak.SetPath(options.InputPath.FullName).EnableTweak();
                         return 0;
                     },
                     (TweakOptions.TweakDisableOptions options) =>
