@@ -1,4 +1,5 @@
-﻿using AmpHelper.Library.Extensions;
+﻿using AmpHelper.Library.Enums;
+using AmpHelper.Library.Extensions;
 using AmpHelper.Library.Helpers;
 using AmpHelper.Library.Interfaces;
 using DtxCS;
@@ -11,10 +12,12 @@ namespace AmpHelper.Library.Tweaks
     public class UnlockFpsTweak : ITweak
     {
         private string ConfigPath { get; set; }
+        private ConsoleType Platform { get; set; }
         public ITweak SetPath(string path)
         {
-            string platform = Directory.Exists(Path.Combine(path, "ps3")) ? "ps3" : "ps4";
-            ConfigPath = Path.Combine(path, platform, "system", "data", "config", $"default.dta_dta_{platform}");
+            Platform = HelperMethods.ConsoleTypeFromPath(path);
+            string platformLabel = Platform.ToString().ToLower();
+            ConfigPath = Path.Combine(path, platformLabel, "system", "data", "config", $"default.dta_dta_{platformLabel}");
 
             if (!File.Exists(ConfigPath))
             {
@@ -46,6 +49,11 @@ namespace AmpHelper.Library.Tweaks
 
         public bool SetState(bool enabled)
         {
+            if (Platform == ConsoleType.PS4)
+            {
+                return false;
+            }
+
             return HelperMethods.DoWithDtbFile(ConfigPath, dtx =>
             {
                 var rndNode = dtx.FindArrayByChild("rnd")?.OfType<DataArray>()?.FirstOrDefault();

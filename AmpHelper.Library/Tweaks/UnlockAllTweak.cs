@@ -60,7 +60,7 @@ namespace AmpHelper.Library.Tweaks
 
         public ITweak SetPath(string path)
         {
-            string platform = Directory.Exists(Path.Combine(path, "ps3")) ? "ps3" : "ps4";
+            string platform = HelperMethods.ConsoleTypeFromPath(path).ToString().ToLower();
             ConfigPath = Path.Combine(path, platform, "config", $"amp_config.dta_dta_{platform}");
 
             if (!File.Exists(ConfigPath))
