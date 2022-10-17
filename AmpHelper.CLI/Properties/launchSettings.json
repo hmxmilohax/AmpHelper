@@ -1,0 +1,51 @@
+{
+  "profiles": {
+    "ark": {
+      "commandName": "Project",
+      "commandLineArgs": "ark"
+    },
+    "no verb": {
+      "commandName": "Project"
+    },
+    "song": {
+      "commandName": "Project",
+      "commandLineArgs": "song"
+    },
+    "tweak": {
+      "commandName": "Project",
+      "commandLineArgs": "tweak"
+    },
+    "song list": {
+      "commandName": "Project",
+      "commandLineArgs": "song list"
+    },
+    "ark pack": {
+      "commandName": "Project",
+      "commandLineArgs": "ark pack"
+    },
+    "ark pack input output/main_ps3.hdr": {
+      "commandName": "Project",
+      "commandLineArgs": "ark pack input output/main_ps3.hdr"
+    },
+    "ark pack main_ps3.hdr output": {
+      "commandName": "Project",
+      "commandLineArgs": "ark pack main_ps3.hdr output"
+    },
+    "tweak unlock-all": {
+      "commandName": "Project",
+      "commandLineArgs": "tweak unlock-all"
+    },
+    "tweak unlock-all disable": {
+      "commandName": "Project",
+      "commandLineArgs": "tweak unlock-all disable ."
+    },
+    "tweak unlock-all enable": {
+      "commandName": "Project",
+      "commandLineArgs": "tweak unlock-all enable ."
+    },
+    "tweak unlock-all status .": {
+      "commandName": "Project",
+      "commandLineArgs": "tweak unlock-all status ."
+    }
+  }
+}

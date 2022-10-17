@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\DtxCS\Library\Builtins.cs" Link="DtxCS\Builtins.cs" />
+    <Compile Include="..\DtxCS\Library\CryptStream.cs" Link="DtxCS\CryptStream.cs" />
+    <Compile Include="..\DtxCS\Library\DataTypes\ArrayTypes.cs" Link="DtxCS\ArrayTypes.cs" />
+    <Compile Include="..\DtxCS\Library\DataTypes\AtomicTypes.cs" Link="DtxCS\AtomicTypes.cs" />
+    <Compile Include="..\DtxCS\Library\DataTypes\Directives.cs" Link="DtxCS\Directives.cs" />
+    <Compile Include="..\DtxCS\Library\DataTypes\Types.cs" Link="DtxCS\Types.cs" />
+    <Compile Include="..\DtxCS\Library\DTX.cs" Link="DtxCS\DTX.cs" />
+    <Compile Include="..\DtxCS\Library\StreamExtensions.cs" Link="DtxCS\StreamExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DtxCS\" />
+  </ItemGroup>
+
+</Project>
