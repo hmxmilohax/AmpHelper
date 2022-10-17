@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmpHelper.CLI", "AmpHelper.CLI\AmpHelper.CLI.csproj", "{733E318E-C6C8-419D-B8A6-44636F84EA5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpHelper.CLI", "AmpHelper.CLI\AmpHelper.CLI.csproj", "{733E318E-C6C8-419D-B8A6-44636F84EA5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpHelper.Library", "AmpHelper.Library\AmpHelper.Library.csproj", "{4C929545-3B5C-4A70-9C6D-BA6104FB0D9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DtxCsStandard", "DtxCsStandard\DtxCsStandard.csproj", "{6EFF874A-2B59-47DC-A5FD-5294B021F962}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{4C929545-3B5C-4A70-9C6D-BA6104FB0D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C929545-3B5C-4A70-9C6D-BA6104FB0D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C929545-3B5C-4A70-9C6D-BA6104FB0D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EFF874A-2B59-47DC-A5FD-5294B021F962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EFF874A-2B59-47DC-A5FD-5294B021F962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EFF874A-2B59-47DC-A5FD-5294B021F962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EFF874A-2B59-47DC-A5FD-5294B021F962}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

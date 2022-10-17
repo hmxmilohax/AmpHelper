@@ -5,7 +5,7 @@ using System.IO;
 
 namespace AmpHelper.Library.Helpers
 {
-    public partial class HelperMethods
+    internal partial class HelperMethods
     {
         public static T DoWithDtbFile<T>(string file, Func<DataArray, T> action, bool rebuild = true)
         {

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace AmpHelper.Library.Extensions
 {
-    public static class DataArray_FindByChild
+    internal static class DataArray_FindByChild
     {
         public static IEnumerable<DataNode> FindArrayByChild(this DataArray dtx, string stringValue, int index = 0)
         {
