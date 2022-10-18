@@ -1,4 +1,5 @@
-﻿using AmpHelper.Library.Interfaces;
+﻿using AmpHelper.Library.Ark;
+using AmpHelper.Library.Interfaces;
 using AmpHelper.Library.Tweaks;
 using CommandLine;
 
@@ -33,12 +34,16 @@ namespace AmpHelper.CLI
 
         private static int ArkPack(ArkOptions.ArkPackOptions options)
         {
-            throw new NotImplementedException();
+            Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
+
+            return 0;
         }
 
         private static int ArkUnpack(ArkOptions.ArkUnpackOptions options)
         {
-            throw new NotImplementedException();
+            Ark.Unpack(options.InputHeader, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
+
+            return 0;
         }
 
         private static int SongList(SongOptions.SongListOptions options)

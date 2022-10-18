@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using AmpHelper.Library.Enums;
+using CommandLine;
 
 namespace AmpHelper.CLI
 {
@@ -8,11 +9,13 @@ namespace AmpHelper.CLI
         [Verb("unpack", HelpText = "Unpack the ark files to a directory")]
         internal class ArkUnpackOptions
         {
-            [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the input .hdr file")]
-            public DirectoryInfo InputPath { get; set; }
+            [Value(0, Required = true, MetaName = "input hdr", HelpText = "Path to the input .hdr file")]
+            public FileInfo InputHeader { get; set; }
 
             [Value(1, Required = true, MetaName = "unpacked path", HelpText = "Path to the unpacked files")]
             public DirectoryInfo OutputPath { get; set; }
+
+            public ConsoleType ConsoleType => InputHeader.Name.ToLower() == "main_ps3.hdr" ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
         [Verb("pack", HelpText = "Pack a directory to ark files")]
@@ -23,10 +26,10 @@ namespace AmpHelper.CLI
 
             [Value(1, Required = true, MetaName = "output path", HelpText = "Path to the packed files")]
             public FileInfo OutputPath { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
     }
-
-
 
     [Verb("song", HelpText = "Song management")]
     internal class SongOptions
@@ -58,7 +61,6 @@ namespace AmpHelper.CLI
             public DirectoryInfo SongPath { get; set; }
         }
     }
-
 
     [Verb("tweak", HelpText = "Useful tweaks")]
     internal class TweakOptions

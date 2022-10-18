@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net60</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\Archive.cs" Link="Ark\Archive.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\ArkEntry.cs" Link="Ark\ArkEntry.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\ArkFileSystem.cs" Link="Ark\ArkFileSystem.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\ArkVersion.cs" Link="Ark\ArkVersion.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\OffsetArkEntry.cs" Link="Ark\OffsetArkEntry.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Ark\PendingArkEntry.cs" Link="Ark\PendingArkEntry.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\AwesomeReader.cs" Link="AwesomeReader.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\AwesomeWriter.cs" Link="AwesomeWriter.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Compression.cs" Link="Compression.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\Crypt.cs" Link="Crypt.cs" />
+    <Compile Include="..\Submodules\Mackiloha\Src\Core\Mackiloha\FileHelper.cs" Link="FileHelper.cs" />
+  </ItemGroup>
+
+</Project>

@@ -1,3 +1,6 @@
-[submodule "DtxCS"]
-	path = DtxCS
+[submodule "Submodules/DtxCS"]
+	path = Submodules/DtxCS
 	url = https://github.com/InvoxiPlayGames/DtxCS.git
+[submodule "Submodules/Mackiloha"]
+	path = Submodules/Mackiloha
+	url = https://github.com/PikminGuts92/Mackiloha.git
