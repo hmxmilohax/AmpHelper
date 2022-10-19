@@ -238,7 +238,8 @@ namespace Mackiloha.Ark
             if (version >= 6)
             {
                 // TODO: Save 16-byte hashes
-                uint hashCount = ar.ReadUInt32();
+                uint hashCount = 1; // Manually set this because Modulate incorrectly has it set to 0
+                ar.ReadUInt32(); // Advance the position
                 ar.BaseStream.Position += hashCount << 4;
             }
 
