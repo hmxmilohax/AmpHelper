@@ -41,7 +41,7 @@ namespace AmpHelper.CLI
 
         private static int ArkUnpack(ArkOptions.ArkUnpackOptions options)
         {
-            Ark.Unpack(options.InputHeader, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
+            Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, (message) => Console.WriteLine(message));
 
             return 0;
         }

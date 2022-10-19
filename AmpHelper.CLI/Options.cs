@@ -15,6 +15,12 @@ namespace AmpHelper.CLI
             [Value(1, Required = true, MetaName = "unpacked path", HelpText = "Path to the unpacked files")]
             public DirectoryInfo OutputPath { get; set; }
 
+            [Option('d', "dtb2a", HelpText = "Converts all dtb files to dta format (doesn't re-pack properly)")]
+            public bool DtbConversion { get; set; }
+
+            [Option('k', "keep-dtb", HelpText = "Keep the original DTB after DTA>DTB conversion")]
+            public bool KeepOriginalDtb { get; set; }
+
             public ConsoleType ConsoleType => InputHeader.Name.ToLower() == "main_ps3.hdr" ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
@@ -29,6 +35,12 @@ namespace AmpHelper.CLI
 
             public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
+
+        [Option('d', "dtb2a", Hidden = true)]
+        public bool _do_not_use_d { get; set; }
+
+        [Option('k', "keep-dtb", Hidden = true)]
+        public bool _do_not_use_k { get; set; }
     }
 
     [Verb("song", HelpText = "Song management")]

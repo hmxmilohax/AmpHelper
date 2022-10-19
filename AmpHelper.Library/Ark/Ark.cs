@@ -1,9 +1,12 @@
 ﻿using AmpHelper.Library.Enums;
+using DanTheMan827.TempFolders;
+using DtxCS;
 using Mackiloha;
 using Mackiloha.Ark;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AmpHelper.Library.Ark
@@ -11,6 +14,13 @@ namespace AmpHelper.Library.Ark
     public class Ark
     {
         #region Ark Packing
+        private static readonly string[] serializableExtensions = new string[]
+        {
+            ".dta",
+            ".fusion",
+            ".moggsong",
+            ".script"
+        };
         public static void Pack(string inputPath, string headerFile, ConsoleType consoleType) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), consoleType);
         public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, Action<string>? Log = null)
         {
@@ -42,10 +52,37 @@ namespace AmpHelper.Library.Ark
             var currentPartSize = 0u;
             var dotRegex = new Regex(@"\([.]+\)/");
 
-            foreach (var file in files)
+            using var temp = new EasyTempFolder();
+
+            foreach (var fileInfo in files)
             {
+                var file = fileInfo;
                 string internalPath = FileHelper.GetRelativePath(file.FullName, inputPath.FullName)
                     .Replace("\\", "/"); // Must be "/" in ark
+
+                if (serializableExtensions.Contains(file.Extension.ToLower()) && !File.Exists($"{file.FullName}_dta_{consoleType.ToString().ToLower()}"))
+                {
+                    internalPath = $"{internalPath}_dta_{consoleType.ToString().ToLower()}";
+                    using var fileStream = File.OpenRead(fileInfo.FullName);
+
+                    file = new FileInfo(Path.Combine(temp.Path, FileHelper.GetRelativePath(file.FullName, inputPath.FullName)));
+
+                    fileStream.Position = 0;
+
+                    var dta = DTX.FromDtaStream(fileStream);
+                    if (file.Exists)
+                    {
+                        file.Delete();
+                    }
+
+                    file.Directory.Create();
+
+                    using var compiled = File.Create(file.FullName);
+
+                    DTX.ToDtb(dta, compiled);
+                    compiled.Dispose();
+                    file.Refresh();
+                }
 
                 if (dotRegex.IsMatch(internalPath))
                 {
@@ -91,7 +128,7 @@ namespace AmpHelper.Library.Ark
                 using var header = new FileStream(headerFile.FullName, FileMode.Open, FileAccess.ReadWrite);
                 header.Seek(0, SeekOrigin.Begin);
                 using var writer = new AwesomeWriter(header);
-                writer.Write(AmplitudeData.PS4Hdr);
+                writer.Write(AmplitudeData.PS4EncryptedVersion);
             }
         }
         #endregion
@@ -135,15 +172,68 @@ namespace AmpHelper.Library.Ark
             return filePath;
         }
 
-        public static void Unpack(string headerFile, string outputPath, ConsoleType consoleType) => Unpack(new FileInfo(headerFile), new DirectoryInfo(outputPath), consoleType);
+        public static void Unpack(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType) => Unpack(new FileInfo(headerFile), new DirectoryInfo(outputPath), dtbConversion, keepOriginalDtb, consoleType);
 
-        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, ConsoleType consoleType, Action<string>? Log = null)
+        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, Action<string>? Log = null)
         {
             var ark = ArkFile.FromFile(headerFile.FullName);
+            using var temp = new EasyTempFolder();
 
             foreach (var entry in ark.Entries)
             {
-                string filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
+                string filePath;
+
+                if (dtbConversion && entry.FileName.EndsWith($"_dta_{consoleType.ToString().ToLower()}"))
+                {
+                    var entryNameWithoutDta = entry.FullPath.Substring(0, entry.FullPath.Length - 8);
+                    var fileInfo = new FileInfo(CombinePath(outputPath.FullName, entryNameWithoutDta));
+                    var entryExtracted = false;
+                    fileInfo.Directory.Create();
+
+                    if (ark.Entries.Where(e => e.FullPath == entryNameWithoutDta).Count() > 0)
+                    {
+                        filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
+                        Log?.Invoke($"Wrote \"{filePath}\"");
+                        continue;
+                    }
+
+                    using var dtbStream = ark.GetArkEntryFileStream(entry);
+                    var dtaArray = DTX.FromDtb(dtbStream);
+                    var sb = new StringBuilder();
+
+                    foreach (var x in dtaArray.Children)
+                    {
+                        sb.AppendLine(x.ToString(0));
+                    }
+
+                    var dtaString = sb.ToString();
+                    var canReparse = false;
+                    try
+                    {
+                        DTX.FromDtaString(dtaString);
+                        canReparse = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // DTA can't be re-parsed, skip writing
+                        canReparse = false;
+                    }
+
+                    if (canReparse)
+                    {
+                        File.WriteAllText(fileInfo.FullName, dtaString);
+                        //byte[] dta = Encoding.UTF8.GetBytes(dtaString);
+                        //File.WriteAllBytes(fileInfo.FullName, dta);
+                        Log?.Invoke($"Wrote dta \"{fileInfo.FullName}\"");
+
+                        if (!keepOriginalDtb)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
                 Log?.Invoke($"Wrote \"{filePath}\"");
             }
         }
