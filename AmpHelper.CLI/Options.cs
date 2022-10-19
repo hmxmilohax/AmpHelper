@@ -36,6 +36,18 @@ namespace AmpHelper.CLI
             public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
+        [Verb("hdrgen", HelpText = "Generate a header pointing to loose files")]
+        internal class ArkHdrGenOptions
+        {
+            [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
+            public DirectoryInfo InputPath { get; set; }
+
+            [Value(1, Required = true, MetaName = "output path", HelpText = "Path to the header file")]
+            public FileInfo OutputPath { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
+        }
+
         [Option('d', "dtb2a", Hidden = true)]
         public bool _do_not_use_d { get; set; }
 

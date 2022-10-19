@@ -286,9 +286,7 @@ namespace Mackiloha.Ark
 
                 for (int i = 0; i < arkPathsCount; i++)
                 {
-                    ar.ReadString(); // Ehh just ignore what's in hdr. Sometimes it'll be absolute instead of relative
-
-                    ark._arkPaths[i + 1] = Path.Combine(directory, $"{hdrFileName}_{i}.ark");
+                    ark._arkPaths[i + 1] = Path.Combine(directory, ar.ReadString());
                 }
             }
             else
@@ -449,6 +447,143 @@ namespace Mackiloha.Ark
             return (currentIdx, (entryOffset - currentOffset));
         }
 
+        public class ArkPart
+        {
+            public string arkPath { get; set; }
+            public string internalPath { get; set; }
+            public string internalName { get; set; }
+            public long size { get; set; }
+            public OffsetArkEntry entry { get; set; }
+
+
+
+            public ArkPart(FileInfo file, DirectoryInfo hdrPath, DirectoryInfo basePath, OffsetArkEntry entry)
+            {
+                this.arkPath = FileHelper.GetRelativePath(file.Directory.FullName, hdrPath.FullName)
+                    .Replace("\\", "/"); // Must be "/" in ark;
+                this.internalPath = FileHelper.GetRelativePath(file.Directory.FullName, basePath.FullName)
+                    .Replace("\\", "/"); // Must be "/" in ark;
+                this.internalName = file.Name;
+                this.size = file.Length;
+                this.entry = entry;
+            }
+
+
+        }
+        public void HeaderFromFolder(DirectoryInfo unpackedPath, FileInfo hdrPath)
+        {
+            var ms = new MemoryStream();
+            AwesomeWriter aw = new AwesomeWriter(ms, false);
+
+            // Writes key if encrypted
+            if (_encrypted)
+                aw.Write((int)_cryptKey);
+            long hdrStart = aw.BaseStream.Position;
+            var fileList = unpackedPath.GetFiles("*", SearchOption.AllDirectories).ToArray();
+            var offset = 0L;
+            var files = fileList.Select(f =>
+            {
+                var arkPart = new ArkPart(f, hdrPath.Directory, unpackedPath, null);
+                arkPart.entry = new OffsetArkEntry(offset, arkPart.internalName, arkPart.internalPath, (uint)arkPart.size, 0, Array.IndexOf(fileList, f) + 1, 0);
+
+                offset += f.Length;
+
+                return arkPart;
+            }).ToArray();
+
+            aw.Write((int)Version);
+
+            if ((int)Version >= 6)
+            {
+                // Always 1?
+                aw.Write((int)1);
+
+                // Write 16-bytes (some kind of hash or timestamp)
+                aw.Write((long)-1);
+                aw.Write((long)-1);
+            }
+
+            if ((int)Version >= 3)
+            {
+                aw.Write(files.Length);
+                aw.Write(files.Length);
+
+                // Writes ark sizes
+                if (Version != ArkVersion.V4)
+                {
+                    foreach (var file in files)
+                        aw.Write((uint)file.size);
+                }
+                else
+                {
+                    // v4 is 64-bit for some reason
+                    foreach (var file in files)
+                        aw.Write((ulong)file.size);
+                }
+            }
+
+            // Write ark paths
+            if ((int)Version >= 5)
+            {
+                // TODO: Use a better way to write relative path
+                var prefix = FileHelper.GetRelativePath(unpackedPath.FullName, hdrPath.FullName).Replace("\\", "/");
+
+                aw.Write((int)files.Length);
+                foreach (var file in files)
+                {
+                    aw.Write((string)$"{file.arkPath}/{file.internalName}");
+                }
+            }
+
+            // 32-bit flags?
+            if ((int)Version >= 6 && (int)Version <= 9)
+            {
+                var writeValue = ((int)Version < 9) ? -1 : 0;
+                aw.Write(files.Length);
+
+                // Write 4-bytes for each part (some kind of flag)
+                foreach (var size in files)
+                {
+                    aw.Write((int)writeValue);
+                }
+            }
+
+            if ((int)Version >= 9)
+            {
+                // TODO: Re-visit for ark v7 (FME)
+                var writeValue = 0;
+                aw.Write(files.Length);
+
+                // Write 4-bytes for each part (seems to always be 0)
+                foreach (var size in files)
+                {
+                    aw.Write((int)writeValue);
+                }
+            }
+
+            _offsetEntries.Clear();
+            _offsetEntries.AddRange(files.Select(e => e.entry));
+            WriteNewFileEntries(aw);
+
+            if (_encrypted)
+            {
+                byte xor = (byte)((_xor && ((int)Version >= 10)) ? 0xFF : 0x00);
+                if (ForcedXor.HasValue)
+                {
+                    xor = ForcedXor.Value;
+                }
+
+                // Encrypts HDR file
+                aw.BaseStream.Seek(hdrStart, SeekOrigin.Begin);
+                Crypt.DTBCrypt(aw.BaseStream, (int)_cryptKey, true, xor);
+            }
+
+            ms.Position = 0;
+
+            using var header = File.Create(hdrPath.FullName);
+            ms.CopyTo(header);
+        }
+
         public void WriteHeader(string path)
         {
             using var ms = new MemoryStream();
@@ -507,7 +642,7 @@ namespace Mackiloha.Ark
             if ((int)Version >= 5)
             {
                 // TODO: Use a better way to write relative path
-                var prefix = ((int)Version < 9) ? "gen/" : "";
+                var prefix = "arks/parts/";
 
                 aw.Write((int)_arkPaths.Length - 1);
                 foreach (var path in _arkPaths.Skip(1))
@@ -563,6 +698,8 @@ namespace Mackiloha.Ark
                 aw.BaseStream.Seek(hdrStart, SeekOrigin.Begin);
                 Crypt.DTBCrypt(aw.BaseStream, (int)_cryptKey, true, xor);
             }
+
+
         }
 
         private static string GetAmpPath(OffsetArkEntry entry)
@@ -887,7 +1024,7 @@ namespace Mackiloha.Ark
 
             foreach (var pending in pendingEntries)
             {
-                // Looks at smallest gaps first, selects first fit
+                // Looks hhat smallest gaps first, selects first fit
                 var bestFit = gaps.OrderBy(x => x.Size).FirstOrDefault(x => x.Size >= pending.Length);
 
                 if (arkSizes.Length > 1)

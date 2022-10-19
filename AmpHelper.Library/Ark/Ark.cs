@@ -21,6 +21,38 @@ namespace AmpHelper.Library.Ark
             ".moggsong",
             ".script"
         };
+
+        public static void HdrFromFolder(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, Action<string>? Log = null)
+        {
+            if (!headerFile.Name.ToLower().EndsWith(".hdr"))
+            {
+                throw new ArgumentException("Header must have a .hdr extension");
+            }
+
+            if (!inputPath.Exists)
+            {
+                throw new DirectoryNotFoundException($"Can't find directory \"{inputPath.FullName}\"");
+            }
+
+            if (!inputPath.FullName.StartsWith(headerFile.Directory.FullName))
+            {
+                throw new ArgumentException("Input path must be a folder within the same folder as the .hdr file");
+            }
+
+            var ark = ArkFile.Create(headerFile.FullName, ArkVersion.V9, consoleType == ConsoleType.PS3 ? AmplitudeData.PS3Key : AmplitudeData.PS4Key);
+
+            ark.ForcedXor = 0xFF;
+            ark.ForcedExtraFlag = consoleType == ConsoleType.PS3 ? AmplitudeData.PS3Extra : AmplitudeData.PS4Extra;
+            ark.HeaderFromFolder(inputPath, headerFile);
+
+            if (consoleType == ConsoleType.PS4)
+            {
+                using var header = new FileStream(headerFile.FullName, FileMode.Open, FileAccess.ReadWrite);
+                header.Seek(0, SeekOrigin.Begin);
+                using var writer = new AwesomeWriter(header);
+                writer.Write(AmplitudeData.PS4EncryptedVersion);
+            }
+        }
         public static void Pack(string inputPath, string headerFile, ConsoleType consoleType) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), consoleType);
         public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, Action<string>? Log = null)
         {

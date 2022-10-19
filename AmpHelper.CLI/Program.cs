@@ -11,10 +11,11 @@ namespace AmpHelper.CLI
         {
             return Parser.Default.ParseArguments<ArkOptions, SongOptions, TweakOptions>(args)
                 .MapResult(
-                    (ArkOptions options) => Parser.Default.ParseArguments<ArkOptions.ArkPackOptions, ArkOptions.ArkUnpackOptions>(args.Skip(1))
+                    (ArkOptions options) => Parser.Default.ParseArguments<ArkOptions.ArkPackOptions, ArkOptions.ArkUnpackOptions, ArkOptions.ArkHdrGenOptions>(args.Skip(1))
                         .MapResult(
                             (ArkOptions.ArkPackOptions options) => ArkPack(options),
                             (ArkOptions.ArkUnpackOptions options) => ArkUnpack(options),
+                            (ArkOptions.ArkHdrGenOptions options) => ArkHdrGen(options),
                             errors => 1),
 
                     (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongRemoveOptions>(args.Skip(1))
@@ -35,6 +36,13 @@ namespace AmpHelper.CLI
         private static int ArkPack(ArkOptions.ArkPackOptions options)
         {
             Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
+
+            return 0;
+        }
+
+        private static int ArkHdrGen(ArkOptions.ArkHdrGenOptions options)
+        {
+            Ark.HdrFromFolder(options.InputPath, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
 
             return 0;
         }
