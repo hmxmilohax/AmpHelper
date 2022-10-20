@@ -82,7 +82,7 @@ namespace AmpHelper.Library.Tweaks
 
         public bool IsEnabled()
         {
-            return HelperMethods.DoWithDtbFile(ConfigPath, dtx =>
+            using var helper = new DtxFileHelper<bool>(ConfigPath, dtx =>
             {
                 var unlocks = dtx.FindArrayByChild("db")?.OfType<DataArray>()?.FirstOrDefault()?.FindArrayByChild("campaign")?.OfType<DataArray>()?.FirstOrDefault();
 
@@ -100,11 +100,13 @@ namespace AmpHelper.Library.Tweaks
 
                 return false;
             });
+
+            return helper.Run().ReturnValue;
         }
 
         private bool SetState(bool enabled)
         {
-            return HelperMethods.DoWithDtbFile(ConfigPath, dtx =>
+            using var helper = new DtxFileHelper<bool>(ConfigPath, dtx =>
             {
                 var unlocks = dtx.FindArrayByChild("db")?.OfType<DataArray>()?.FirstOrDefault()?.FindArrayByChild("campaign")?.OfType<DataArray>()?.FirstOrDefault();
 
@@ -135,6 +137,8 @@ namespace AmpHelper.Library.Tweaks
 
                 return false;
             });
+
+            return helper.Run().Rebuild().ReturnValue;
         }
 
 
