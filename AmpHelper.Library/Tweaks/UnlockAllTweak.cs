@@ -1,4 +1,5 @@
-﻿using AmpHelper.Library.Extensions;
+﻿using AmpHelper.Library.Attributes;
+using AmpHelper.Library.Extensions;
 using AmpHelper.Library.Helpers;
 using AmpHelper.Library.Interfaces;
 using DtxCS;
@@ -8,6 +9,14 @@ using System.Linq;
 
 namespace AmpHelper.Library.Tweaks
 {
+    [TweakInfo(
+        Name: "Unlock all",
+        Verb: "unlock-all",
+        Description: "Unlock all arenas, songs, powerups, and freq mode",
+        EnableText: "All arenas, songs, powerups, and freq mode will be unlocked when the game is loaded.",
+        DisableText: "All arenas, songs, powerups, and freq mode will be unlocked normally as you progress.\n\nThis does not apply to existing saves.",
+        EnabledText: "All arenas, songs, powerups, and freq mode will be unlocked when the game is loaded.",
+        DisabledText: "All arenas, songs, powerups, and freq mode will be unlocked normally as you progress.")]
     public class UnlockAllTweak : ITweak
     {
         private string ConfigPath { get; set; }
