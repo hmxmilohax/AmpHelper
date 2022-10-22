@@ -1,4 +1,6 @@
-﻿using AmpHelper.Library.Enums;
+﻿using AmpHelper.Library.Delegates;
+using AmpHelper.Library.Enums;
+using AmpHelper.Library.Helpers;
 using DanTheMan827.TempFolders;
 using DtxCS;
 using Mackiloha;
@@ -11,7 +13,10 @@ using System.Text.RegularExpressions;
 
 namespace AmpHelper.Library.Ark
 {
-    public class Ark
+    /// <summary>
+    /// Contains methods for packing and unpacking ark files.
+    /// </summary>
+    public static class Ark
     {
         #region Ark Packing
         private static readonly string[] serializableExtensions = new string[]
@@ -21,8 +26,43 @@ namespace AmpHelper.Library.Ark
             ".moggsong",
             ".script"
         };
-        public static void Pack(string inputPath, string headerFile, ConsoleType consoleType) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), consoleType);
-        public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, Action<string>? Log = null)
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Pack(string inputPath, string headerFile, ProgressAction progress = null) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), HelperMethods.ConsoleTypeFromPath(inputPath, GamePathType.Packed), progress);
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType"></param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Pack(string inputPath, string headerFile, ConsoleType consoleType, ProgressAction progress = null) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), consoleType, progress);
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ProgressAction progress = null) => Pack(inputPath, headerFile, HelperMethods.ConsoleTypeFromPath(inputPath.FullName, GamePathType.Packed), progress);
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="NotSupportedException"></exception>
+        public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, ProgressAction progress = null)
         {
             if (!headerFile.Name.ToLower().EndsWith(".hdr"))
             {
@@ -53,6 +93,10 @@ namespace AmpHelper.Library.Ark
             var dotRegex = new Regex(@"\([.]+\)/");
 
             using var temp = new EasyTempFolder();
+            long totalSize = files.Select(file => file.Length).Sum() + 1;
+            long currentSize = 0;
+
+            progress?.Invoke("Starting", currentSize, totalSize);
 
             foreach (var fileInfo in files)
             {
@@ -63,6 +107,7 @@ namespace AmpHelper.Library.Ark
                 if (serializableExtensions.Contains(file.Extension.ToLower()) && !File.Exists($"{file.FullName}_dta_{consoleType.ToString().ToLower()}"))
                 {
                     internalPath = $"{internalPath}_dta_{consoleType.ToString().ToLower()}";
+
                     using var fileStream = File.OpenRead(fileInfo.FullName);
 
                     file = new FileInfo(Path.Combine(temp.Path, FileHelper.GetRelativePath(file.FullName, inputPath.FullName)));
@@ -98,9 +143,10 @@ namespace AmpHelper.Library.Ark
                     throw new NotSupportedException($"File size above 4GB is unsupported for \"{file.FullName}\"");
                 }
 
+                ark.CommitChanges(false);
+
                 if (potentialPartSize > arkPartSizeLimit)
                 {
-                    ark.CommitChanges(true);
                     ark.AddAdditionalPart();
                     currentPartSize = 0;
                 }
@@ -114,14 +160,15 @@ namespace AmpHelper.Library.Ark
                 };
 
                 ark.AddPendingEntry(pendingEntry);
-                Log?.Invoke($"Added {pendingEntry.FullPath}");
+
+                currentSize += fileInfo.Length;
+
+                progress?.Invoke($"Added {internalPath}", currentSize, totalSize);
 
                 currentPartSize += fileSize;
             }
 
             ark.CommitChanges(true);
-
-            Log?.Invoke($"Wrote hdr to \"{headerFile.FullName}\"");
 
             if (consoleType == ConsoleType.PS4)
             {
@@ -130,6 +177,8 @@ namespace AmpHelper.Library.Ark
                 using var writer = new AwesomeWriter(header);
                 writer.Write(AmplitudeData.PS4EncryptedVersion);
             }
+
+            progress?.Invoke($"Wrote {headerFile.FullName}", currentSize + 1, totalSize);
         }
         #endregion
         #region Ark Unpacking
@@ -172,16 +221,61 @@ namespace AmpHelper.Library.Ark
             return filePath;
         }
 
-        public static void Unpack(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType) => Unpack(new FileInfo(headerFile), new DirectoryInfo(outputPath), dtbConversion, keepOriginalDtb, consoleType);
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Unpack(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction progress = null) => Unpack(new FileInfo(headerFile), new DirectoryInfo(outputPath), dtbConversion, keepOriginalDtb, HelperMethods.ConsoleTypeFromPath(headerFile, GamePathType.HeaderFile), progress);
 
-        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, Action<string>? Log = null)
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Unpack(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction progress = null) => Unpack(new FileInfo(headerFile), new DirectoryInfo(outputPath), dtbConversion, keepOriginalDtb, consoleType, progress);
+
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction? progress = null) => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, HelperMethods.ConsoleTypeFromPath(headerFile.FullName, GamePathType.HeaderFile), progress);
+
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction? progress = null)
         {
             var ark = ArkFile.FromFile(headerFile.FullName);
             using var temp = new EasyTempFolder();
 
-            foreach (var entry in ark.Entries)
+            long totalSize = ark.Entries.Cast<OffsetArkEntry>().Select(entry => (long)Math.Max(entry.Size, entry.InflatedSize)).Sum();
+            long currentSize = 0;
+
+            progress?.Invoke("Starting", currentSize, totalSize);
+
+            foreach (var entry in ark.Entries.OfType<OffsetArkEntry>())
             {
                 string filePath;
+                var entrySize = Math.Max(entry.Size, entry.InflatedSize);
+                currentSize += entrySize;
 
                 if (dtbConversion && entry.FileName.EndsWith($"_dta_{consoleType.ToString().ToLower()}"))
                 {
@@ -193,7 +287,7 @@ namespace AmpHelper.Library.Ark
                     if (ark.Entries.Where(e => e.FullPath == entryNameWithoutDta).Count() > 0)
                     {
                         filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
-                        Log?.Invoke($"Wrote \"{filePath}\"");
+                        progress?.Invoke($"Unpacked {entry.FullPath}", currentSize, totalSize);
                         continue;
                     }
 
@@ -224,7 +318,7 @@ namespace AmpHelper.Library.Ark
                         File.WriteAllText(fileInfo.FullName, dtaString);
                         //byte[] dta = Encoding.UTF8.GetBytes(dtaString);
                         //File.WriteAllBytes(fileInfo.FullName, dta);
-                        Log?.Invoke($"Wrote dta \"{fileInfo.FullName}\"");
+                        progress?.Invoke($"Unpacked {entryNameWithoutDta}", currentSize, totalSize);
 
                         if (!keepOriginalDtb)
                         {
@@ -234,7 +328,7 @@ namespace AmpHelper.Library.Ark
                 }
 
                 filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
-                Log?.Invoke($"Wrote \"{filePath}\"");
+                progress?.Invoke($"Unpacked {entry.FullPath}", currentSize, totalSize);
             }
         }
         #endregion

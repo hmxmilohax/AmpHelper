@@ -32,14 +32,14 @@ namespace AmpHelper.CLI
 
         private static int ArkPack(ArkOptions.ArkPackOptions options)
         {
-            Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, (message) => Console.WriteLine(message));
+            Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, (message, current, total) => Console.WriteLine($"{String.Format("{0:0.0}", Math.Floor((double)current / total * 1000) / 10).PadLeft(5)}%: {message}"));
 
             return 0;
         }
 
         private static int ArkUnpack(ArkOptions.ArkUnpackOptions options)
         {
-            Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, (message) => Console.WriteLine(message));
+            Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, (message, current, total) => Console.WriteLine($"{String.Format("{0:0.0}", Math.Floor((double)current / total * 1000) / 10).PadLeft(5)}%: {message}"));
 
             return 0;
         }

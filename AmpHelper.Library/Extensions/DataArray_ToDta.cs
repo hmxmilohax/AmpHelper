@@ -5,6 +5,11 @@ namespace AmpHelper.Library.Extensions
 {
     public static class DataArray_ToDta
     {
+        /// <summary>
+        /// Converts a <see cref="DataArray"/> to a string representation.
+        /// </summary>
+        /// <param name="array">The input <see cref="DataArray"/>.</param>
+        /// <returns></returns>
         public static string ToDta(this DataArray array)
         {
             var sb = new StringBuilder();

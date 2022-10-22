@@ -1,5 +1,10 @@
 ﻿namespace AmpHelper.Library.Interfaces
 {
+    /// <summary>
+    /// The base interface for all tweaks.
+    /// 
+    /// Classes implementing this interface should add the <see cref="Attributes.TweakInfo"/> attribute.
+    /// </summary>
     public interface ITweak
     {
         /// <summary>

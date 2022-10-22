@@ -2,6 +2,9 @@
 
 namespace AmpHelper.Library.Attributes
 {
+    /// <summary>
+    /// Describes a tweak.
+    /// </summary>
     public class TweakInfo : Attribute
     {
         /// <summary>
