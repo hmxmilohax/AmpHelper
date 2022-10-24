@@ -69,6 +69,14 @@ namespace AmpHelper.CLI
 
             [Value(1, Required = true, MetaName = "song name", HelpText = "The song to remove")]
             public string SongName { get; set; }
+
+            [Option('f', "force", HelpText = "Allow removal of songs included with the base game.")]
+            public bool Force { get; set; }
+
+            [Option('d', "delete", HelpText = "Delete song folder")]
+            public bool Delete { get; internal set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
         [Verb("add", HelpText = "Add a song")]
@@ -86,6 +94,12 @@ namespace AmpHelper.CLI
 
         [Option('p', "pretty")]
         public bool _do_not_use_p { get; set; }
+
+        [Option('f', "force")]
+        public bool _do_not_use_f { get; set; }
+
+        [Option('d', "delete")]
+        public bool _do_not_use_d { get; set; }
     }
 
     [Verb("tweak", HelpText = "Useful tweaks")]

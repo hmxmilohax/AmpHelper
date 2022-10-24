@@ -1,4 +1,5 @@
-﻿using AmpHelper.Library.Ark;
+﻿using AmpHelper.Library;
+using AmpHelper.Library.Ark;
 using AmpHelper.Library.Attributes;
 using AmpHelper.Library.Enums;
 using AmpHelper.Library.Helpers;
@@ -68,7 +69,15 @@ namespace AmpHelper.CLI
 
         private static int SongRemove(SongOptions.SongRemoveOptions options)
         {
-            throw new NotImplementedException();
+            if (options.Force == false && AmplitudeData.BaseSongs.Contains(options.SongName.ToLower()))
+            {
+                Console.WriteLine("Won't remove built-in songs without --force");
+                return 1;
+            }
+
+            SongManagement.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType);
+
+            return 0;
         }
 
         private static int ProcessTweak(TweakOptions options, string[] args)
