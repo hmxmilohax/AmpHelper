@@ -3,7 +3,9 @@ using AmpHelper.Library.Attributes;
 using AmpHelper.Library.Enums;
 using AmpHelper.Library.Helpers;
 using AmpHelper.Library.Interfaces;
+using AmpHelper.Library.Song;
 using CommandLine;
+using System.Text.Json;
 
 namespace AmpHelper.CLI
 {
@@ -46,7 +48,17 @@ namespace AmpHelper.CLI
 
         private static int SongList(SongOptions.SongListOptions options)
         {
-            throw new NotImplementedException();
+            var songs = SongManagement.ListSongs(options.InputPath, options.ConsoleType);
+
+            if (options.OutputJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(songs, new JsonSerializerOptions() { WriteIndented = options.PrettyPrint }));
+                return 0;
+            }
+
+            Console.WriteLine(String.Join("\n\n", songs.Select(song => $"{song.ID}:\n  Title: {song.Title}\n  Artist: {song.Artist}\n  BPM: {song.Bpm}{(string.IsNullOrEmpty(song.Charter) ? "" : $"\n  Charter: {song.Charter}")}\n  Added: {song.InGame}\n  {song.Description}")));
+
+            return 0;
         }
 
         private static int SongAdd(SongOptions.SongAddOptions options)

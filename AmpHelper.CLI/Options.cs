@@ -51,6 +51,14 @@ namespace AmpHelper.CLI
         {
             [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
             public DirectoryInfo InputPath { get; set; }
+
+            [Option('j', "output-json", HelpText = "Outputs JSON formatted text")]
+            public bool OutputJson { get; set; }
+
+            [Option('p', "pretty", HelpText = "Indents the JSON")]
+            public bool PrettyPrint { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
         [Verb("remove", HelpText = "Remove a song")]
@@ -72,6 +80,12 @@ namespace AmpHelper.CLI
             [Value(1, Required = true, MetaName = "song path", HelpText = "Path to the song being added")]
             public DirectoryInfo SongPath { get; set; }
         }
+
+        [Option('j', "output-json")]
+        public bool _do_not_use_j { get; set; }
+
+        [Option('p', "pretty")]
+        public bool _do_not_use_p { get; set; }
     }
 
     [Verb("tweak", HelpText = "Useful tweaks")]

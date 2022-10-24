@@ -31,5 +31,16 @@
         /// Extra data set in the PS4 header file entries.
         /// </summary>
         public const uint PS4Extra = 0xDDB682F0;
+
+        /// <summary>
+        /// All of the song folder names included with the base game.
+        /// </summary>
+        public static readonly string[] BaseSongs = new string[] {
+            "allthetime", "assault_on", "astrosight", "breakforme", "concept", "crazy_ride", "credits", "crystal",
+            "dalatecht", "decode_me", "digitalparalysis", "donot", "dreamer", "energize", "entomophobia", "forcequit",
+            "humanlove", "impossible", "iseeyou", "lights", "magpie", "muze", "necrodancer", "perfectbrain",
+            "phantoms", "recession", "redgiant", "supraspatial", "synthesized2014", "tut0", "tut1", "tutc",
+            "unfinished", "wayfarer", "wetware"
+        };
     }
 }
