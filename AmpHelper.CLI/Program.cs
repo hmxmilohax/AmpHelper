@@ -6,6 +6,7 @@ using AmpHelper.Library.Helpers;
 using AmpHelper.Library.Interfaces;
 using AmpHelper.Library.Song;
 using CommandLine;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace AmpHelper.CLI
@@ -22,10 +23,12 @@ namespace AmpHelper.CLI
                             (ArkOptions.ArkUnpackOptions options) => ArkUnpack(options),
                             errors => 1),
 
-                    (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongRemoveOptions>(args.Skip(1))
+                    (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongAddAllOptions, SongOptions.SongImportOptions, SongOptions.SongRemoveOptions>(args.Skip(1))
                         .MapResult(
                             (SongOptions.SongListOptions options) => SongList(options),
                             (SongOptions.SongAddOptions options) => SongAdd(options),
+                            (SongOptions.SongAddAllOptions options) => SongAdd(options),
+                            (SongOptions.SongImportOptions options) => SongImport(options),
                             (SongOptions.SongRemoveOptions options) => SongRemove(options),
                             errors => 1),
 
@@ -33,23 +36,52 @@ namespace AmpHelper.CLI
                     errors => 1);
         }
 
-        private static int ArkPack(ArkOptions.ArkPackOptions options)
+        private static void WriteLog(string message, long current, long total)
         {
-            Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, (message, current, total) => Console.WriteLine($"{String.Format("{0:0.0}", Math.Floor((double)current / total * 1000) / 10).PadLeft(5)}%: {message}"));
+            if (message == null)
+            {
+                return;
+            }
 
-            return 0;
+            Console.WriteLine($"{String.Format("{0:0.0}", Math.Floor((double)current / total * 1000) / 10).PadLeft(5)}%: {message}");
         }
 
-        private static int ArkUnpack(ArkOptions.ArkUnpackOptions options)
+        private static int ErrorWrap(Func<int> func)
         {
-            Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, (message, current, total) => Console.WriteLine($"{String.Format("{0:0.0}", Math.Floor((double)current / total * 1000) / 10).PadLeft(5)}%: {message}"));
+            if (Debugger.IsAttached)
+            {
+                return func();
+            }
 
-            return 0;
+            try
+            {
+                return func();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.GetType().ToString().Split('.').Last()}: {ex.Message}");
+
+                return 1;
+            }
         }
 
-        private static int SongList(SongOptions.SongListOptions options)
+        private static int ArkPack(ArkOptions.ArkPackOptions options) => ErrorWrap(() =>
         {
-            var songs = SongManagement.ListSongs(options.InputPath, options.ConsoleType);
+            Ark.Pack(options.InputPath, options.OutputPath, options.ConsoleType, WriteLog);
+
+            return 0;
+        });
+
+        private static int ArkUnpack(ArkOptions.ArkUnpackOptions options) => ErrorWrap(() =>
+        {
+            Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, WriteLog);
+
+            return 0;
+        });
+
+        private static int SongList(SongOptions.SongListOptions options) => ErrorWrap(() =>
+        {
+            var songs = SongManagement.GetSongs(options.InputPath, options.ConsoleType);
 
             if (options.OutputJson)
             {
@@ -60,14 +92,63 @@ namespace AmpHelper.CLI
             Console.WriteLine(String.Join("\n\n", songs.Select(song => $"{song.ID}:\n  Title: {song.Title}\n  Artist: {song.Artist}\n  BPM: {song.Bpm}{(string.IsNullOrEmpty(song.Charter) ? "" : $"\n  Charter: {song.Charter}")}\n  Added: {song.InGame}\n  {song.Description}")));
 
             return 0;
-        }
+        });
 
-        private static int SongAdd(SongOptions.SongAddOptions options)
+        private static int SongAdd(SongOptions.SongAddOptions options) => ErrorWrap(() =>
         {
-            throw new NotImplementedException();
-        }
+            SongManagement.AddSong(options.InputPath, options.SongName, options.ConsoleType, WriteLog);
 
-        private static int SongRemove(SongOptions.SongRemoveOptions options)
+            return 0;
+        });
+
+        private static int SongAdd(SongOptions.SongAddAllOptions options) => ErrorWrap(() =>
+        {
+            SongManagement.AddAllSongs(options.InputPath, options.ConsoleType, WriteLog);
+
+            return 0;
+        });
+
+        private static int SongImport(SongOptions.SongImportOptions options) => ErrorWrap(() =>
+        {
+            var songs = SongManagement.GetSongs(options.InputPath, options.ConsoleType).Select(e => Path.GetFileNameWithoutExtension(e.MoggSongPath.ToLower()));
+            var fullPath = Path.GetFullPath(options.SongPath);
+            var songPath = Path.GetFullPath(Path.Combine(options.InputPath.FullName, options.ConsoleType.ToString().ToLower(), "songs"));
+
+            if (File.Exists(options.SongPath))
+            {
+                var info = new FileInfo(fullPath);
+
+                if (options.Replace == false && !fullPath.ToLower().StartsWith(songPath.ToLower()) && songs.Contains(Path.GetFileNameWithoutExtension(options.SongPath.ToLower())))
+                {
+                    Console.WriteLine("Song already exists, use --replace if you want to replace");
+
+                    return 1;
+                }
+
+                SongManagement.ImportSong(options.InputPath, info, options.Replace, options.ConsoleType, WriteLog);
+            }
+            else if (Directory.Exists(options.SongPath))
+            {
+                var info = new DirectoryInfo(fullPath);
+
+                if (options.Replace == false && !fullPath.ToLower().StartsWith(songPath.ToLower()) && songs.Contains(info.Name.ToLower()))
+                {
+                    Console.WriteLine("Song already exists, use --replace if you want to replac.");
+
+                    return 1;
+                }
+
+                SongManagement.ImportSong(options.InputPath, info, options.Replace, WriteLog);
+            }
+            else
+            {
+                Console.WriteLine("Input path does not exist");
+            }
+
+            return 0;
+        });
+
+        private static int SongRemove(SongOptions.SongRemoveOptions options) => ErrorWrap(() =>
         {
             if (options.Force == false && AmplitudeData.BaseSongs.Contains(options.SongName.ToLower()))
             {
@@ -75,12 +156,12 @@ namespace AmpHelper.CLI
                 return 1;
             }
 
-            SongManagement.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType);
+            SongManagement.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType, WriteLog);
 
             return 0;
-        }
+        });
 
-        private static int ProcessTweak(TweakOptions options, string[] args)
+        private static int ProcessTweak(TweakOptions options, string[] args) => ErrorWrap(() =>
         {
             var usageText = "Usage:\n  tweak <tweak> (status|enable|disable) <path to game files>\n\nThe following tweaks are available.";
             var type = typeof(ITweak);
@@ -168,6 +249,6 @@ namespace AmpHelper.CLI
             }
 
             return 0;
-        }
+        });
     }
 }

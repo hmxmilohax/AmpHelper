@@ -79,14 +79,40 @@ namespace AmpHelper.CLI
             public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
-        [Verb("add", HelpText = "Add a song")]
+        [Verb("add", HelpText = "Add a song manually placed in the songs folder")]
         internal class SongAddOptions
         {
             [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
             public DirectoryInfo InputPath { get; set; }
 
+            [Value(1, Required = true, MetaName = "song name", HelpText = "Name of the song being added")]
+            public string SongName { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
+        }
+
+        [Verb("add-all", HelpText = "Add all songs in the songs folder")]
+        internal class SongAddAllOptions
+        {
+            [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
+            public DirectoryInfo InputPath { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
+        }
+
+        [Verb("import", HelpText = "Import a song")]
+        internal class SongImportOptions
+        {
+            [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
+            public DirectoryInfo InputPath { get; set; }
+
             [Value(1, Required = true, MetaName = "song path", HelpText = "Path to the song being added")]
-            public DirectoryInfo SongPath { get; set; }
+            public string SongPath { get; set; }
+
+            [Option('r', "replace", HelpText = "Replace any existing song with the same identifier")]
+            public bool Replace { get; set; }
+
+            public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
         [Option('j', "output-json")]
@@ -100,6 +126,9 @@ namespace AmpHelper.CLI
 
         [Option('d', "delete")]
         public bool _do_not_use_d { get; set; }
+
+        [Option('r', "replace")]
+        public bool _do_not_use_r { get; set; }
     }
 
     [Verb("tweak", HelpText = "Useful tweaks")]

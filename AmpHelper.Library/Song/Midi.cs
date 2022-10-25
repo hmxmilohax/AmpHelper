@@ -60,5 +60,13 @@ namespace AmpHelper.Library.Song
 
             throw new Exception("Unable to patch midi");
         }
+
+        public static void PatchMidi(string midiPath, float bpm, ConsoleType consoleType)
+        {
+            using (var midi = File.Open(midiPath, FileMode.Open, FileAccess.ReadWrite))
+            {
+                PatchMidi(midi, bpm, consoleType);
+            }
+        }
     }
 }

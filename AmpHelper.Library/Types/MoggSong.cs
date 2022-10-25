@@ -299,14 +299,15 @@ namespace AmpHelper.Library.Types
         }
 
         /// <summary>
-        /// Converts the instance to a DataArray.
+        /// Converts the instance to a <see cref="DataArray"/>.
         /// </summary>
+        /// <param name="makeNew">Create a new <see cref="DataArray"/> instead of using the original dtx as a base.</param>
         /// <returns></returns>
-        public DataArray ToDtx()
+        public DataArray ToDtx(bool makeNew = false)
         {
             DataArray dtx;
 
-            if (DtxBytes != null)
+            if (makeNew == false && DtxBytes != null)
             {
                 using (var ms = new MemoryStream(DtxBytes))
                 {
@@ -457,6 +458,21 @@ namespace AmpHelper.Library.Types
                 node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(ArenaPath));
             }
 
+            if (makeNew && (node = GetOrDeleteArray(dtx, "score_goal", null, true)) != null)
+            {
+                for (var y = 0; y < 4; y++)
+                {
+                    var array = new DataArray();
+
+                    for (var x = 0; x < 3; x++)
+                    {
+                        array.AddNode(new DataAtom(x + y + 1));
+                    }
+
+                    node.AddNode(array);
+                }
+            }
+
             if ((node = GetOrDeleteArray(dtx, "tunnel_scale", knownNodes.TunnelScale, TunnelScale)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom((float)TunnelScale));
@@ -522,7 +538,7 @@ namespace AmpHelper.Library.Types
 
             if ((node = GetOrDeleteArray(dtx, "desc", knownNodes.Description, Description)) != null)
             {
-                node.RemoveAllAfter(0).AddNode(new DataAtom(Description));
+                node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(Description));
             }
 
             if ((node = GetOrDeleteArray(dtx, "unlock_requirement", knownNodes.UnlockRequirement, UnlockRequirement)) != null)
@@ -532,7 +548,7 @@ namespace AmpHelper.Library.Types
 
             if ((node = GetOrDeleteArray(dtx, "bpm", knownNodes.Bpm, Bpm)) != null)
             {
-                node.RemoveAllAfter(0).AddNode(new DataAtom((float)Bpm.Value));
+                node.RemoveAllAfter(0).AddNode(new DataAtom((int)Bpm.Value));
             }
 
             if ((node = GetOrDeleteArray(dtx, "preview_start_ms", knownNodes.PreviewStartMs, PreviewStart)) != null)
