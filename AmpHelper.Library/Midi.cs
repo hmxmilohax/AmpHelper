@@ -1,13 +1,16 @@
-﻿using AmpHelper.Library.Enums;
+﻿using AmpHelper.Enums;
 using System;
 using System.IO;
 
-namespace AmpHelper.Library.Song
+namespace AmpHelper
 {
+    /// <summary>
+    /// Contains the PatchMidi function for patching the platform specific midi with new BPM.
+    /// </summary>
     public static class Midi
     {
-        private const UInt64 PS3Terminator = 0xcdabcdabcdabcdab;
-        private const UInt64 PS4Terminator = 0x01abcdabcdabcdab;
+        private const ulong PS3Terminator = 0xcdabcdabcdabcdab;
+        private const ulong PS4Terminator = 0x01abcdabcdabcdab;
 
         /// <summary>
         /// Patches mid_ps3 or mid_ps4 files with a new tempo.
@@ -36,17 +39,17 @@ namespace AmpHelper.Library.Song
                         input.Position += 2;
 
                         input.Write(new byte[] {
-                            (byte)((midiBpm >> 16) & 0xFF),
-                            (byte)((midiBpm >> 8) & 0xFF),
-                            (byte)((midiBpm >> 0) & 0xFF)
+                            (byte)(midiBpm >> 16 & 0xFF),
+                            (byte)(midiBpm >> 8 & 0xFF),
+                            (byte)(midiBpm >> 0 & 0xFF)
                         });
                     }
                     else
                     {
                         input.Write(new byte[] {
-                            (byte)((midiBpm >> 0) & 0xFF),
-                            (byte)((midiBpm >> 8) & 0xFF),
-                            (byte)((midiBpm >> 16) & 0xFF)
+                            (byte)(midiBpm >> 0 & 0xFF),
+                            (byte)(midiBpm >> 8 & 0xFF),
+                            (byte)(midiBpm >> 16 & 0xFF)
                         });
                     }
 

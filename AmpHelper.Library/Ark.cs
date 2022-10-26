@@ -1,6 +1,6 @@
-﻿using AmpHelper.Library.Delegates;
-using AmpHelper.Library.Enums;
-using AmpHelper.Library.Helpers;
+﻿using AmpHelper.Delegates;
+using AmpHelper.Enums;
+using AmpHelper.Helpers;
 using DanTheMan827.TempFolders;
 using DtxCS;
 using Mackiloha;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AmpHelper.Library.Ark
+namespace AmpHelper
 {
     /// <summary>
     /// Contains methods for packing and unpacking ark files.
@@ -250,7 +250,7 @@ namespace AmpHelper.Library.Ark
         /// <param name="dtbConversion">Convert dtb files to dta.</param>
         /// <param name="keepOriginalDtb">Keep the original dtb files</param>
         /// <param name="progress">An action that will be invoked with a message and the progress.</param>
-        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction? progress = null) => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, HelperMethods.ConsoleTypeFromPath(headerFile.FullName, GamePathType.HeaderFile), progress);
+        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction progress = null) => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, HelperMethods.ConsoleTypeFromPath(headerFile.FullName, GamePathType.HeaderFile), progress);
 
         /// <summary>
         /// Unpacks ark files and a header file to a directory.
@@ -261,7 +261,7 @@ namespace AmpHelper.Library.Ark
         /// <param name="keepOriginalDtb">Keep the original dtb files</param>
         /// <param name="consoleType">The console type</param>
         /// <param name="progress">An action that will be invoked with a message and the progress.</param>
-        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction? progress = null)
+        public static void Unpack(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction progress = null)
         {
             var ark = ArkFile.FromFile(headerFile.FullName);
             using var temp = new EasyTempFolder();

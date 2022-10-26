@@ -1,32 +1,39 @@
-﻿using AmpHelper.Library.Delegates;
-using AmpHelper.Library.Enums;
-using AmpHelper.Library.Exceptions;
-using AmpHelper.Library.Extensions;
-using AmpHelper.Library.Helpers;
-using AmpHelper.Library.Types;
+﻿using AmpHelper.Delegates;
+using AmpHelper.Enums;
+using AmpHelper.Exceptions;
+using AmpHelper.Extensions;
+using AmpHelper.Helpers;
+using AmpHelper.Types;
 using DtxCS;
 using DtxCS.DataTypes;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 
-namespace AmpHelper.Library.Song
+namespace AmpHelper
 {
-    public static class SongManagement
+    /// <summary>
+    /// Contains methods for adding, removing, and getting songs from the game data.
+    /// </summary>
+    public static class Song
     {
-        private static bool ValidateSong(string path, string name, bool throwError = false)
+        /// <summary>
+        /// Validates a song
+        /// </summary>
+        /// <param name="path">The path to the song.</param>
+        /// <param name="name">The name of the song, this is usually the same as the folder containing it.</param>
+        /// <param name="throwError">Throw errors, or return them.</param>
+        /// <returns>An <see cref="AggregateException"/> of <see cref="FileNotFoundException"/> exceptions encountered during validation, or null if there are none.</returns>
+        /// <exception cref="AggregateException">Only thrown if throwError == true.</exception>
+        private static AggregateException ValidateSong(string path, string name, bool throwError = false)
         {
-            bool valid = true;
             var exceptions = new List<Exception>();
 
             foreach (var file in new string[] { "mogg", "mid", "moggsong" }.Select(e => Path.Combine(path, $"{name}.{e}")))
             {
                 if (!File.Exists(file))
                 {
-                    valid = false;
-
                     if (throwError)
                     {
                         exceptions.Add(new FileNotFoundException(file));
@@ -39,10 +46,21 @@ namespace AmpHelper.Library.Song
                 throw new AggregateException("Song validation failed", exceptions);
             }
 
-            return valid;
+            return exceptions.Count > 0 ? new AggregateException("Song validation failed", exceptions) : null;
         }
 
         #region Import Song
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song, or the directory containing it.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, string moggsong, bool replace, ProgressAction Log = null)
         {
             if (Directory.Exists(moggsong))
@@ -59,6 +77,19 @@ namespace AmpHelper.Library.Song
                 throw new AggregateException(new DirectoryNotFoundException(moggsong), new FileNotFoundException(moggsong));
             }
         }
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song, or the directory containing it.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, string moggsong, bool replace, ConsoleType consoleType, ProgressAction Log = null)
         {
             if (Directory.Exists(moggsong))
@@ -74,18 +105,119 @@ namespace AmpHelper.Library.Song
                 throw new AggregateException(new DirectoryNotFoundException(moggsong), new FileNotFoundException(moggsong));
             }
         }
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The path to a directory containing the .moggsong file.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, DirectoryInfo moggsong, bool replace, ProgressAction Log = null) => ImportSong(new DirectoryInfo(unpackedPath), new FileInfo(Path.Combine(moggsong.FullName, $"{moggsong.Name}.moggsong")), replace, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The path to a directory containing the .moggsong file.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, DirectoryInfo moggsong, bool replace, ConsoleType consoleType, ProgressAction Log = null) => ImportSong(new DirectoryInfo(unpackedPath), new FileInfo(Path.Combine(moggsong.FullName, $"{moggsong.Name}.moggsong")), replace, consoleType, Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, FileInfo moggsong, bool replace, ProgressAction Log = null) => ImportSong(new DirectoryInfo(unpackedPath), moggsong, replace, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(string unpackedPath, FileInfo moggsong, bool replace, ConsoleType consoleType, ProgressAction Log = null) => ImportSong(new DirectoryInfo(unpackedPath), moggsong, replace, consoleType, Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(DirectoryInfo unpackedPath, DirectoryInfo moggsong, bool replace, ProgressAction Log = null) => ImportSong(unpackedPath, new FileInfo(Path.Combine(moggsong.FullName, $"{moggsong.Name}.moggsong")), replace, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(DirectoryInfo unpackedPath, DirectoryInfo moggsong, bool replace, ConsoleType consoleType, ProgressAction Log = null) => ImportSong(unpackedPath, new FileInfo(Path.Combine(moggsong.FullName, $"{moggsong.Name}.moggsong")), replace, consoleType, Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(DirectoryInfo unpackedPath, FileInfo moggsong, bool replace, ProgressAction Log = null) => ImportSong(unpackedPath, moggsong, replace, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Copies the song into the songs folder of the game, and adds it into the amp_config and amp_songs_config files.  
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="moggsong">The .moggsong file of the song.</param>
+        /// <param name="replace">If any existing song with the same name should be replaced.  An exception will be thrown if one exists and this is false.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="FormatException">Thrown when the song file name does not have a .moggsong extension.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void ImportSong(DirectoryInfo unpackedPath, FileInfo moggsong, bool replace, ConsoleType consoleType, ProgressAction Log = null)
         {
             if (!moggsong.FullName.ToLower().EndsWith(".moggsong"))
             {
-                throw new Exception($"{moggsong.FullName} is not a .moggsong file");
+                throw new FormatException($"{moggsong.FullName} is not a .moggsong file");
             }
 
             if (unpackedPath == null)
@@ -156,9 +288,34 @@ namespace AmpHelper.Library.Song
         #endregion
 
         #region Add All Songs
+        /// <summary>
+        /// Adds all missing songs present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
         public static void AddAllSongs(string unpackedPath, ProgressAction Log = null) => AddAllSongs(new DirectoryInfo(unpackedPath), HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Adds all missing songs present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
         public static void AddAllSongs(string unpackedPath, ConsoleType consoleType, ProgressAction Log = null) => AddAllSongs(new DirectoryInfo(unpackedPath), consoleType, Log);
+
+        /// <summary>
+        /// Adds all missing songs present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
         public static void AddAllSongs(DirectoryInfo unpackedPath, ProgressAction Log = null) => AddAllSongs(unpackedPath, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Adds all missing songs present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
         public static void AddAllSongs(DirectoryInfo unpackedPath, ConsoleType consoleType, ProgressAction Log = null)
         {
             var songs = GetSongs(unpackedPath, consoleType, Log).Where(e => e.InGame == false && e.Special == false).Select(e => Path.GetFileNameWithoutExtension(e.MoggSongPath)).OrderBy(e => e).ToArray();
@@ -174,9 +331,54 @@ namespace AmpHelper.Library.Song
         #endregion
 
         #region Add Song
+        /// <summary>
+        /// Adds a song already present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to add.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static void AddSong(string unpackedPath, string songName, ProgressAction Log = null) => AddSong(new DirectoryInfo(unpackedPath), songName, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Adds a song already present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to add.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static void AddSong(string unpackedPath, string songName, ConsoleType consoleType, ProgressAction Log = null) => AddSong(new DirectoryInfo(unpackedPath), songName, consoleType, Log);
+
+        /// <summary>
+        /// Adds a song already present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to add.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static void AddSong(DirectoryInfo unpackedPath, string songName, ProgressAction Log = null) => AddSong(unpackedPath, songName, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Adds a song already present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to add.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static void AddSong(DirectoryInfo unpackedPath, string songName, ConsoleType consoleType, ProgressAction Log = null)
         {
             var paths = new AmplitudePaths(unpackedPath.FullName, consoleType);
@@ -297,9 +499,54 @@ namespace AmpHelper.Library.Song
         #endregion
 
         #region Remove Song
+        /// <summary>
+        /// Renives a song from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to remove.</param>
+        /// <param name="delete">If the song path should be deleted from the game files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void RemoveSong(string unpackedPath, string songName, bool delete, ProgressAction Log = null) => RemoveSong(new DirectoryInfo(unpackedPath), songName, delete, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Renives a song from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to remove.</param>
+        /// <param name="delete">If the song path should be deleted from the game files.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void RemoveSong(string unpackedPath, string songName, bool delete, ConsoleType consoleType, ProgressAction Log = null) => RemoveSong(new DirectoryInfo(unpackedPath), songName, delete, consoleType, Log);
+
+        /// <summary>
+        /// Renives a song from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to remove.</param>
+        /// <param name="delete">If the song path should be deleted from the game files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void RemoveSong(DirectoryInfo unpackedPath, string songName, bool delete, ProgressAction Log = null) => RemoveSong(unpackedPath, songName, delete, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Renives a song from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songName">The name of the song to remove.</param>
+        /// <param name="delete">If the song path should be deleted from the game files.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public static void RemoveSong(DirectoryInfo unpackedPath, string songName, bool delete, ConsoleType consoleType, ProgressAction Log = null)
         {
 
@@ -366,9 +613,54 @@ namespace AmpHelper.Library.Song
         #endregion
 
         #region Get Songs
+        /// <summary>
+        /// Gets a list of songs from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <returns>An array of <see cref="MoggSong"/> objects.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static MoggSong[] GetSongs(string unpackedPath, ProgressAction Log = null) => GetSongs(new DirectoryInfo(unpackedPath), HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
+
+        /// <summary>
+        /// Gets a list of songs from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <returns>An array of <see cref="MoggSong"/> objects.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static MoggSong[] GetSongs(string unpackedPath, ConsoleType consoleType, ProgressAction Log = null) => GetSongs(new DirectoryInfo(unpackedPath), consoleType, Log);
+
+        /// <summary>
+        /// Gets a list of songs from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <returns>An array of <see cref="MoggSong"/> objects.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static MoggSong[] GetSongs(DirectoryInfo unpackedPath, ProgressAction Log = null) => GetSongs(unpackedPath, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName), Log);
+
+        /// <summary>
+        /// Gets a list of songs from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <returns>An array of <see cref="MoggSong"/> objects.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
         public static MoggSong[] GetSongs(DirectoryInfo unpackedPath, ConsoleType consoleType, ProgressAction Log = null)
         {
             var songs = new List<MoggSong>();
@@ -434,7 +726,7 @@ namespace AmpHelper.Library.Song
                     song.NodeId = songNode.GetChild<string>(0);
                     song.BaseSong = AmplitudeData.BaseSongs.Contains(Path.GetFileNameWithoutExtension(moggSongPath).ToLower());
                     song.InGame = true;
-                    song.Special = (id == "credits" || id == "tut0" || id == "tut1" || id == "tutc");
+                    song.Special = id == "credits" || id == "tut0" || id == "tut1" || id == "tutc";
 
                     songs.Add(song);
                 }
@@ -459,7 +751,7 @@ namespace AmpHelper.Library.Song
 
                 song.BaseSong = AmplitudeData.BaseSongs.Contains(Path.GetFileNameWithoutExtension(moggSongPath).ToLower());
                 song.InGame = false;
-                song.Special = (id == "credits" || id == "tut0" || id == "tut1" || id == "tutc");
+                song.Special = id == "credits" || id == "tut0" || id == "tut1" || id == "tutc";
 
                 songs.Add(song);
             }

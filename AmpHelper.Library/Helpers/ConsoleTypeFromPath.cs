@@ -1,7 +1,7 @@
-﻿using AmpHelper.Library.Enums;
+﻿using AmpHelper.Enums;
 using System.IO;
 
-namespace AmpHelper.Library.Helpers
+namespace AmpHelper.Helpers
 {
     internal partial class HelperMethods
     {

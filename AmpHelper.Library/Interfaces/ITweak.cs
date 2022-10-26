@@ -1,4 +1,4 @@
-﻿namespace AmpHelper.Library.Interfaces
+﻿namespace AmpHelper.Interfaces
 {
     /// <summary>
     /// The base interface for all tweaks.

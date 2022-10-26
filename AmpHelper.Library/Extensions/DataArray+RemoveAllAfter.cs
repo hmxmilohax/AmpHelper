@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace AmpHelper.Library.Extensions
+namespace AmpHelper.Extensions
 {
     internal static class DataArray_RemoveAllAfter
     {

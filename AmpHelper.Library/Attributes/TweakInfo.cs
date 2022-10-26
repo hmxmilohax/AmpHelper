@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AmpHelper.Library.Attributes
+namespace AmpHelper.Attributes
 {
     /// <summary>
     /// Describes a tweak.

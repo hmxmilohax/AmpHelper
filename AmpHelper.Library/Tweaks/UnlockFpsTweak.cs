@@ -1,15 +1,18 @@
-﻿using AmpHelper.Library.Attributes;
-using AmpHelper.Library.Enums;
-using AmpHelper.Library.Extensions;
-using AmpHelper.Library.Helpers;
-using AmpHelper.Library.Interfaces;
+﻿using AmpHelper.Attributes;
+using AmpHelper.Enums;
+using AmpHelper.Extensions;
+using AmpHelper.Helpers;
+using AmpHelper.Interfaces;
 using DtxCS;
 using DtxCS.DataTypes;
 using System.IO;
 using System.Linq;
 
-namespace AmpHelper.Library.Tweaks
+namespace AmpHelper.Tweaks
 {
+    /// <summary>
+    /// This tweak will unlock the frame rate to run at the highest possible.
+    /// </summary>
     [TweakInfo(
         Name: "Unlock FPS",
         Verb: "unlock-fps",

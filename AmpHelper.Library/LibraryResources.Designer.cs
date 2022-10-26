@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AmpHelper.Library {
+namespace AmpHelper {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace AmpHelper.Library {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("AmpHelper.Library.LibraryResources", typeof(LibraryResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("AmpHelper.LibraryResources", typeof(LibraryResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

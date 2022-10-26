@@ -1,11 +1,11 @@
-﻿using AmpHelper.Library.Extensions;
+﻿using AmpHelper.Extensions;
 using DtxCS;
 using DtxCS.DataTypes;
 using System;
 using System.IO;
 using System.Text;
 
-namespace AmpHelper.Library.Helpers
+namespace AmpHelper.Helpers
 {
     /// <summary>
     /// Makes working with dtx streams a little easier.

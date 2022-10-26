@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net60</TargetFramework>
+    <RootNamespace>AmpHelper</RootNamespace>
+    <AssemblyName>AmpHelper.Library</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

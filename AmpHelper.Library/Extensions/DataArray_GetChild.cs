@@ -1,8 +1,8 @@
-﻿using AmpHelper.Library.Delegates;
+﻿using AmpHelper.Delegates;
 using DtxCS.DataTypes;
 using System;
 
-namespace AmpHelper.Library.Extensions
+namespace AmpHelper.Extensions
 {
     internal static class DataArray_GetChild
     {

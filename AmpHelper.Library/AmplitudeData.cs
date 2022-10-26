@@ -1,5 +1,8 @@
-﻿namespace AmpHelper.Library
+﻿namespace AmpHelper
 {
+    /// <summary>
+    /// Various information about the game.
+    /// </summary>
     public static class AmplitudeData
     {
         /// <summary>

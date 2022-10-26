@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AmpHelper.Library.Extensions
+namespace AmpHelper.Extensions
 {
     internal static class Object_Transform
     {

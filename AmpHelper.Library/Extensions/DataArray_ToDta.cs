@@ -1,9 +1,9 @@
 ﻿using DtxCS.DataTypes;
 using System.Text;
 
-namespace AmpHelper.Library.Extensions
+namespace AmpHelper.Extensions
 {
-    public static class DataArray_ToDta
+    internal static class DataArray_ToDta
     {
         /// <summary>
         /// Converts a <see cref="DataArray"/> to a string representation.

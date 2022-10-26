@@ -21,11 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AmpHelper.Library\AmpHelper.Library.csproj" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\" />
+    <ProjectReference Include="..\AmpHelper.Library\AmpHelper.Library.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace AmpHelper.Library.Helpers
+namespace AmpHelper.Helpers
 {
     /// <summary>
     /// Makes working with dtx streams a little easier.

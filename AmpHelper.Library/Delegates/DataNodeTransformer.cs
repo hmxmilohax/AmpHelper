@@ -1,6 +1,6 @@
 ﻿using DtxCS.DataTypes;
 
-namespace AmpHelper.Library.Delegates
+namespace AmpHelper.Delegates
 {
     internal delegate T DataNodeTransformer<T>(DataNode node);
 }

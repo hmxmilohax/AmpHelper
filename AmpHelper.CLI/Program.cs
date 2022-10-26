@@ -1,10 +1,7 @@
-﻿using AmpHelper.Library;
-using AmpHelper.Library.Ark;
-using AmpHelper.Library.Attributes;
-using AmpHelper.Library.Enums;
-using AmpHelper.Library.Helpers;
-using AmpHelper.Library.Interfaces;
-using AmpHelper.Library.Song;
+﻿using AmpHelper.Attributes;
+using AmpHelper.Enums;
+using AmpHelper.Helpers;
+using AmpHelper.Interfaces;
 using CommandLine;
 using System.Diagnostics;
 using System.Text.Json;
@@ -81,7 +78,7 @@ namespace AmpHelper.CLI
 
         private static int SongList(SongOptions.SongListOptions options) => ErrorWrap(() =>
         {
-            var songs = SongManagement.GetSongs(options.InputPath, options.ConsoleType);
+            var songs = Song.GetSongs(options.InputPath, options.ConsoleType);
 
             if (options.OutputJson)
             {
@@ -96,21 +93,21 @@ namespace AmpHelper.CLI
 
         private static int SongAdd(SongOptions.SongAddOptions options) => ErrorWrap(() =>
         {
-            SongManagement.AddSong(options.InputPath, options.SongName, options.ConsoleType, WriteLog);
+            Song.AddSong(options.InputPath, options.SongName, options.ConsoleType, WriteLog);
 
             return 0;
         });
 
         private static int SongAdd(SongOptions.SongAddAllOptions options) => ErrorWrap(() =>
         {
-            SongManagement.AddAllSongs(options.InputPath, options.ConsoleType, WriteLog);
+            Song.AddAllSongs(options.InputPath, options.ConsoleType, WriteLog);
 
             return 0;
         });
 
         private static int SongImport(SongOptions.SongImportOptions options) => ErrorWrap(() =>
         {
-            var songs = SongManagement.GetSongs(options.InputPath, options.ConsoleType).Select(e => Path.GetFileNameWithoutExtension(e.MoggSongPath.ToLower()));
+            var songs = Song.GetSongs(options.InputPath, options.ConsoleType).Select(e => Path.GetFileNameWithoutExtension(e.MoggSongPath.ToLower()));
             var fullPath = Path.GetFullPath(options.SongPath);
             var songPath = Path.GetFullPath(Path.Combine(options.InputPath.FullName, options.ConsoleType.ToString().ToLower(), "songs"));
 
@@ -125,7 +122,7 @@ namespace AmpHelper.CLI
                     return 1;
                 }
 
-                SongManagement.ImportSong(options.InputPath, info, options.Replace, options.ConsoleType, WriteLog);
+                Song.ImportSong(options.InputPath, info, options.Replace, options.ConsoleType, WriteLog);
             }
             else if (Directory.Exists(options.SongPath))
             {
@@ -138,7 +135,7 @@ namespace AmpHelper.CLI
                     return 1;
                 }
 
-                SongManagement.ImportSong(options.InputPath, info, options.Replace, WriteLog);
+                Song.ImportSong(options.InputPath, info, options.Replace, WriteLog);
             }
             else
             {
@@ -156,7 +153,7 @@ namespace AmpHelper.CLI
                 return 1;
             }
 
-            SongManagement.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType, WriteLog);
+            Song.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType, WriteLog);
 
             return 0;
         });

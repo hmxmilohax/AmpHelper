@@ -1,14 +1,17 @@
-﻿using AmpHelper.Library.Attributes;
-using AmpHelper.Library.Extensions;
-using AmpHelper.Library.Helpers;
-using AmpHelper.Library.Interfaces;
+﻿using AmpHelper.Attributes;
+using AmpHelper.Extensions;
+using AmpHelper.Helpers;
+using AmpHelper.Interfaces;
 using DtxCS;
 using DtxCS.DataTypes;
 using System.IO;
 using System.Linq;
 
-namespace AmpHelper.Library.Tweaks
+namespace AmpHelper.Tweaks
 {
+    /// <summary>
+    /// This tweak will unlock all arenas, songs, powerups, and freq mode.
+    /// </summary>
     [TweakInfo(
         Name: "Unlock all",
         Verb: "unlock-all",

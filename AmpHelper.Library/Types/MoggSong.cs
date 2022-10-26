@@ -1,5 +1,6 @@
-﻿using AmpHelper.Library.Extensions;
-using AmpHelper.Library.Helpers;
+﻿using AmpHelper.Enums;
+using AmpHelper.Extensions;
+using AmpHelper.Helpers;
 using DtxCS;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
@@ -7,54 +8,95 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace AmpHelper.Library.Types
+namespace AmpHelper.Types
 {
+    /// <summary>
+    /// Describes a .moggsong file.
+    /// </summary>
     [JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault)]
     public class MoggSong
     {
+        /// <summary>
+        /// Describes a single track in a .moggsong file.
+        /// </summary>
         public class Track
         {
+            /// <summary>
+            /// The name of the track
+            /// </summary>
             [JsonPropertyName("name")]
             public string Name { get; set; }
 
+            /// <summary>
+            /// A list of channels.
+            /// </summary>
             [JsonPropertyName("channels")]
             public List<int> Channels { get; set; }
 
+            /// <summary>
+            /// The track event.
+            /// </summary>
             [JsonPropertyName("event")]
             public string Event { get; set; }
         }
 
+        /// <summary>
+        /// The song ID based on the filename.
+        /// </summary>
         [JsonIgnore]
-        public string ID => Path.GetFileNameWithoutExtension(MoggPath ?? MidiPath);
+        public string ID => Path.GetFileNameWithoutExtension(MoggSongPath ?? MoggPath ?? MidiPath);
 
-
+        /// <summary>
+        /// Path to the .mogg file.
+        /// </summary>
         [JsonPropertyName("mogg_path")]
         public string MoggPath { get; set; }
 
+        /// <summary>
+        /// Path to the .mid file.
+        /// </summary>
         [JsonPropertyName("midi_path")]
         public string MidiPath { get; set; }
 
         /// <summary>
-        /// Should be 5 less than actual.
+        /// The number of bars in the song, should be 5 less than actual.
         /// </summary>
         [JsonPropertyName("length")]
         public int? Length { get; set; }
 
+        /// <summary>
+        /// The number of bars to count in.
+        /// </summary>
         [JsonPropertyName("countin")]
         public int? CountIn { get; set; }
 
+        /// <summary>
+        /// A list of <see cref="Track"/> objects for the song.
+        /// </summary>
         [JsonPropertyName("tracks")]
         public List<Track> Tracks { get; set; }
 
+        /// <summary>
+        /// A list of pans for the song.
+        /// </summary>
         [JsonPropertyName("pans")]
         public List<double> Pans { get; set; }
 
+        /// <summary>
+        /// A list of volumes for the song.
+        /// </summary>
         [JsonPropertyName("vols")]
         public List<double> Volumes { get; set; }
 
+        /// <summary>
+        /// A list of attenuations for the song.
+        /// </summary>
         [JsonPropertyName("active_track_db")]
         public List<double> Attenuation { get; internal set; }
 
+        /// <summary>
+        /// The arena path.
+        /// </summary>
         [JsonPropertyName("arena_path")]
         public string ArenaPath { get; set; }
 
@@ -64,48 +106,167 @@ namespace AmpHelper.Library.Types
         [JsonPropertyName("tunnel_scale")]
         public double? TunnelScale { get; set; }
 
+        /// <summary>
+        /// The order in which the tracks are enabled.
+        /// </summary>
         [JsonPropertyName("enable_order")]
         public List<int> EnableOrder { get; internal set; }
 
+        /// <summary>
+        /// Where to put the sections, keep this to a max of 3.
+        /// </summary>
         [JsonPropertyName("section_start_bars")]
         public List<int> SectionStartBars { get; internal set; }
 
+        /// <summary>
+        /// The title of the track as shown on the right side.
+        /// </summary>
         [JsonPropertyName("title")]
         public string Title { get; set; }
 
+        /// <summary>
+        /// The title of the track as shown in the list.
+        /// </summary>
         [JsonPropertyName("title_short")]
         public string ShortTitle { get; set; }
 
+        /// <summary>
+        /// The artist of the song.
+        /// </summary>
         [JsonPropertyName("artist")]
         public string Artist { get; set; }
 
+        /// <summary>
+        /// The short artist of the song, this doesn't appear to be used in-game.
+        /// </summary>
         [JsonPropertyName("artist_short")]
         public string ShortArtist { get; set; }
 
+        /// <summary>
+        /// The description of the song that is displayed.
+        /// </summary>
         [JsonPropertyName("desc")]
         public string Description { get; set; }
 
-        [JsonPropertyName("unlocK_requirement")]
-        public string UnlockRequirement { get; set; }
+        /// <summary>
+        /// The raw unlock requirement.
+        /// </summary>
+        [JsonPropertyName("unlock_requirement")]
+        public string RawUnlockRequirement { get; set; }
 
+        /// <summary>
+        /// The unlock requirement accessed and set via the <see cref="UnlockRequirement"/> enum.
+        /// </summary>
+        [JsonIgnore]
+        public UnlockRequirement UnlockRequirement
+        {
+            get
+            {
+                switch (RawUnlockRequirement)
+                {
+                    case null:
+                        return UnlockRequirement.None;
+
+                    case "unlock_requirement_boss":
+                        return UnlockRequirement.Boss;
+
+                    case "unlock_requirement_playcount":
+                        return UnlockRequirement.PlayCount;
+
+                    case "unlock_requirement_world1":
+                        return UnlockRequirement.World1;
+
+                    case "unlock_requirement_world2":
+                        return UnlockRequirement.World2;
+
+                    case "unlock_requirement_world3":
+                        return UnlockRequirement.World3;
+
+                    case "unlock_requirement_bonus":
+                        return UnlockRequirement.Bonus;
+                }
+
+                return UnlockRequirement.Unknown;
+            }
+
+            set
+            {
+                switch (value)
+                {
+                    case UnlockRequirement.None:
+                        RawUnlockRequirement = null;
+                        break;
+
+                    case UnlockRequirement.Boss:
+                        RawUnlockRequirement = "unlock_requirement_boss";
+                        break;
+
+                    case UnlockRequirement.PlayCount:
+                        RawUnlockRequirement = "unlock_requirement_playcount";
+                        break;
+
+                    case UnlockRequirement.World1:
+                        RawUnlockRequirement = "unlock_requirement_world1";
+                        break;
+
+                    case UnlockRequirement.World2:
+                        RawUnlockRequirement = "unlock_requirement_world2";
+                        break;
+
+                    case UnlockRequirement.World3:
+                        RawUnlockRequirement = "unlock_requirement_world3";
+                        break;
+
+                    case UnlockRequirement.Bonus:
+                        RawUnlockRequirement = "unlock_requirement_bonus";
+                        break;
+
+                    case UnlockRequirement.Unknown:
+                        RawUnlockRequirement = null;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The BPM of the song.
+        /// </summary>
         [JsonPropertyName("bpm")]
         public double? Bpm { get; set; }
 
+        /// <summary>
+        /// Who charted the song.
+        /// </summary>
         [JsonPropertyName("charter")]
         public string Charter { get; set; }
 
+        /// <summary>
+        /// A link to a video demonstrating the song.
+        /// </summary>
         [JsonPropertyName("demo_video")]
         public string DemoVideo { get; set; }
 
+        /// <summary>
+        /// What point to start the preview at in miliseconds.
+        /// </summary>
         [JsonPropertyName("preview_start_ms")]
         public int? PreviewStart { get; set; }
 
+        /// <summary>
+        /// How long the preview should play in miliseconds.
+        /// </summary>
         [JsonPropertyName("preview_length_ms")]
         public int? PreviewLength { get; set; }
 
+        /// <summary>
+        /// The boss level of the song.  Unsure exactly what this is for.
+        /// </summary>
         [JsonPropertyName("boss_level")]
         public int? BossLevel { get; set; }
 
+        /// <summary>
+        /// The bytes for the DTX file used to create this instance if created with <see cref="FromDtx(DataArray)"/>, <see cref="FromMoggsong(FileInfo)"/>, <see cref="FromMoggsong(Stream, bool)"/>, <see cref="FromMoggsong(string)"/>, or <see cref="FromMoggsongString(string)"/>.
+        /// </summary>
         [JsonIgnore()]
         public byte[] DtxBytes { get; set; }
 
@@ -116,7 +277,7 @@ namespace AmpHelper.Library.Types
         public string NodeId { get; internal set; }
 
         /// <summary>
-        /// The path to the mogg file when parsed with <see cref="MoggSong.FromMoggsong(string)"/> or <see cref="MoggSong.FromMoggsong(FileInfo)"/>.
+        /// The path to the mogg file when parsed with <see cref="MoggSong.FromMoggsong(string)"/>, or <see cref="MoggSong.FromMoggsong(FileInfo)"/>.
         /// </summary>
         [JsonPropertyName("moggsong_path")]
         public string MoggSongPath { get; internal set; }
@@ -134,7 +295,7 @@ namespace AmpHelper.Library.Types
         public bool InGame { get; internal set; } = false;
 
         /// <summary>
-        /// Is this a special track? (tutorial, credits)
+        /// If the song is a special track (tutorial, credits).
         /// </summary>
         [JsonPropertyName("special")]
         public bool Special { get; internal set; } = false;
@@ -192,7 +353,7 @@ namespace AmpHelper.Library.Types
             Artist = dtx.FindArrayByChild("artist").FirstOrDefault()?.GetChild<string>(1);
             ShortArtist = dtx.FindArrayByChild("artist_short").FirstOrDefault()?.GetChild<string>(1);
             Description = dtx.FindArrayByChild("desc").FirstOrDefault()?.GetChild<string>(1);
-            UnlockRequirement = dtx.FindArrayByChild("unlock_requirement").FirstOrDefault()?.GetChild<string>(1);
+            RawUnlockRequirement = dtx.FindArrayByChild("unlock_requirement").FirstOrDefault()?.GetChild<string>(1);
             Bpm = dtx.FindArrayByChild("bpm").FirstOrDefault()?.GetChild<double>(1, e => double.Parse(e.ToString()));
             Charter = dtx.FindArrayByChild("charter").FirstOrDefault()?.GetChild<string>(1)?.Trim();
             DemoVideo = dtx.FindArrayByChild("demo_video").FirstOrDefault()?.GetChild<string>(1)?.Trim();
@@ -327,36 +488,36 @@ namespace AmpHelper.Library.Types
                 dtx = new DataArray();
             }
 
-            var knownNodes = new MoggSongNodes(dtx);
+            var knownNodes = dtx.PopulateNodeDictionary();
 
             DataArray node;
 
-            if ((node = GetOrDeleteArray(dtx, "mogg_path", knownNodes.MoggPath, MoggPath)) != null)
+            if ((node = GetOrDeleteArray(dtx, "mogg_path", knownNodes.GetValueOrDefault("/mogg_path"), MoggPath)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(MoggPath));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "midi_path", knownNodes.MidiPath, MidiPath)) != null)
+            if ((node = GetOrDeleteArray(dtx, "midi_path", knownNodes.GetValueOrDefault("/midi_path"), MidiPath)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(MidiPath));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "song_info", knownNodes.SongInfo, Length.HasValue || CountIn.HasValue ? "" : null)) != null)
+            if ((node = GetOrDeleteArray(dtx, "song_info", knownNodes.GetValueOrDefault("/song_info"), Length.HasValue || CountIn.HasValue ? "" : null)) != null)
             {
                 DataArray innerNode;
 
-                if ((innerNode = GetOrDeleteArray(node, "length", knownNodes.Length, Length)) != null)
+                if ((innerNode = GetOrDeleteArray(node, "length", knownNodes.GetValueOrDefault("/song_info/length"), Length)) != null)
                 {
                     innerNode.AddNode(DataSymbol.Symbol($"{Length.Value}:0:0"));
                 }
 
-                if ((innerNode = GetOrDeleteArray(node, "countin", knownNodes.CountIn, Length)) != null)
+                if ((innerNode = GetOrDeleteArray(node, "countin", knownNodes.GetValueOrDefault("/song_info/countin"), Length)) != null)
                 {
                     innerNode.AddNode(new DataAtom(CountIn.Value));
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "tracks", knownNodes.Tracks, Tracks)) != null)
+            if ((node = GetOrDeleteArray(dtx, "tracks", knownNodes.GetValueOrDefault("/tracks"), Tracks)) != null)
             {
                 if (Tracks.Count == 0)
                 {
@@ -394,7 +555,7 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "pans", knownNodes.Pans, Pans)) != null)
+            if ((node = GetOrDeleteArray(dtx, "pans", knownNodes.GetValueOrDefault("/pans"), Pans)) != null)
             {
                 if (Pans.Count == 0)
                 {
@@ -415,7 +576,7 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "vols", knownNodes.Vols, Volumes)) != null)
+            if ((node = GetOrDeleteArray(dtx, "vols", knownNodes.GetValueOrDefault("/vols"), Volumes)) != null)
             {
                 if (Volumes.Count == 0)
                 {
@@ -436,7 +597,7 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "active_track_db", knownNodes.Attenuation, Attenuation)) != null)
+            if ((node = GetOrDeleteArray(dtx, "active_track_db", knownNodes.GetValueOrDefault("/active_track_db"), Attenuation)) != null)
             {
                 if (Attenuation.Count == 0)
                 {
@@ -453,7 +614,7 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "arena_path", knownNodes.ArenaPath, ArenaPath)) != null)
+            if ((node = GetOrDeleteArray(dtx, "arena_path", knownNodes.GetValueOrDefault("/arena_path"), ArenaPath)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(ArenaPath));
             }
@@ -473,12 +634,12 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "tunnel_scale", knownNodes.TunnelScale, TunnelScale)) != null)
+            if ((node = GetOrDeleteArray(dtx, "tunnel_scale", knownNodes.GetValueOrDefault("/tunnel_scale"), TunnelScale)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom((float)TunnelScale));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "enable_order", knownNodes.EnableOrder, EnableOrder)) != null)
+            if ((node = GetOrDeleteArray(dtx, "enable_order", knownNodes.GetValueOrDefault("/enable_order"), EnableOrder)) != null)
             {
                 if (EnableOrder.Count == 0)
                 {
@@ -499,7 +660,7 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "section_start_bars", knownNodes.SectionStartBars, SectionStartBars)) != null)
+            if ((node = GetOrDeleteArray(dtx, "section_start_bars", knownNodes.GetValueOrDefault("/section_start_bars"), SectionStartBars)) != null)
             {
                 if (SectionStartBars.Count == 0)
                 {
@@ -516,63 +677,62 @@ namespace AmpHelper.Library.Types
                 }
             }
 
-            if ((node = GetOrDeleteArray(dtx, "title", knownNodes.Title, Title)) != null)
+            if ((node = GetOrDeleteArray(dtx, "title", knownNodes.GetValueOrDefault("/title"), Title)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(Title));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "title_short", knownNodes.ShortTitle, ShortTitle)) != null)
+            if ((node = GetOrDeleteArray(dtx, "title_short", knownNodes.GetValueOrDefault("/title_short"), ShortTitle)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(ShortTitle));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "artist", knownNodes.Artist, Artist)) != null)
+            if ((node = GetOrDeleteArray(dtx, "artist", knownNodes.GetValueOrDefault("/artist"), Artist)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(Artist));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "artist_short", knownNodes.ShortArtist, ShortArtist)) != null)
+            if ((node = GetOrDeleteArray(dtx, "artist_short", knownNodes.GetValueOrDefault("/artist_short"), ShortArtist)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(ShortArtist));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "desc", knownNodes.Description, Description)) != null)
+            if ((node = GetOrDeleteArray(dtx, "desc", knownNodes.GetValueOrDefault("/desc"), Description)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(Description));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "unlock_requirement", knownNodes.UnlockRequirement, UnlockRequirement)) != null)
+            if ((node = GetOrDeleteArray(dtx, "unlock_requirement", knownNodes.GetValueOrDefault("/unlock_requirement"), RawUnlockRequirement)) != null)
             {
-                node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(UnlockRequirement));
+                node.RemoveAllAfter(0).AddNode(DataSymbol.Symbol(RawUnlockRequirement));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "bpm", knownNodes.Bpm, Bpm)) != null)
+            if ((node = GetOrDeleteArray(dtx, "bpm", knownNodes.GetValueOrDefault("/bpm"), Bpm)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom((int)Bpm.Value));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "preview_start_ms", knownNodes.PreviewStartMs, PreviewStart)) != null)
+            if ((node = GetOrDeleteArray(dtx, "preview_start_ms", knownNodes.GetValueOrDefault("/preview_start_ms"), PreviewStart)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(PreviewStart.Value));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "preview_length_ms", knownNodes.PreviewLengthMs, PreviewLength)) != null)
+            if ((node = GetOrDeleteArray(dtx, "preview_length_ms", knownNodes.GetValueOrDefault("/preview_length_ms"), PreviewLength)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(PreviewLength.Value));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "boss_level", knownNodes.BossLevel, BossLevel)) != null)
+            if ((node = GetOrDeleteArray(dtx, "boss_level", knownNodes.GetValueOrDefault("/boss_level"), BossLevel)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(BossLevel.Value));
-                ;
             }
 
-            if ((node = GetOrDeleteArray(dtx, "charter", knownNodes.Charter, Charter)) != null)
+            if ((node = GetOrDeleteArray(dtx, "charter", knownNodes.GetValueOrDefault("/charter"), Charter)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(Charter));
             }
 
-            if ((node = GetOrDeleteArray(dtx, "demo_video", knownNodes.DemoVideo, DemoVideo)) != null)
+            if ((node = GetOrDeleteArray(dtx, "demo_video", knownNodes.GetValueOrDefault("/demo_video"), DemoVideo)) != null)
             {
                 node.RemoveAllAfter(0).AddNode(new DataAtom(DemoVideo));
             }

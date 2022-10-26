@@ -1,4 +1,4 @@
-﻿using AmpHelper.Library.Enums;
+﻿using AmpHelper.Enums;
 using CommandLine;
 
 namespace AmpHelper.CLI
