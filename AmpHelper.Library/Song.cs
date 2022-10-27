@@ -489,6 +489,10 @@ namespace AmpHelper
                 var songNode = new DataArray();
                 songNode.AddNode(DataSymbol.Symbol(targetToken));
                 songNode.AddNode(new DataInclude($"../Songs/{songName}/{songName}.moggsong"));
+                var typeNode = new DataArray();
+                typeNode.AddNode(DataSymbol.Symbol("type"));
+                typeNode.AddNode(DataSymbol.Symbol("kSongExtra"));
+                songNode.AddNode(typeNode);
                 node.AddNode(songNode);
 
                 return null;
