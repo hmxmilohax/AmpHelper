@@ -34,9 +34,10 @@ namespace AmpHelper.Helpers
         /// </summary>
         /// <param name="stream">A seekable stream of dta or dtb data.</param>
         /// <param name="func">A function that is executed when <see cref="Run(bool)"/> is invoked.</param>
-        public DtxStreamHelper(Stream stream, Func<DataArray, T> func)
+        public DtxStreamHelper(Stream stream, Func<DataArray, T> func = null)
         {
-            Func = func;
+            SetFunc(func);
+
             DtxStream = stream;
             bool encrypted = false;
             Binary = DtxStream.ReadByte() == 1;
@@ -47,6 +48,20 @@ namespace AmpHelper.Helpers
             DtxStream.Position = 0;
             Dtx = Binary ? DTX.FromDtb(DtxStream) : DTX.FromDtaStream(DtxStream);
             DtxStream.Position = InitialPosition;
+        }
+
+        public DtxStreamHelper<T> SetFunc(Func<DataArray, T> func = null)
+        {
+            if (func != null)
+            {
+                Func = func;
+            }
+            else
+            {
+                Func = (e) => default(T);
+            }
+
+            return this;
         }
 
         /// <summary>

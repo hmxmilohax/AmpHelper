@@ -20,13 +20,14 @@ namespace AmpHelper.CLI
                             (ArkOptions.ArkUnpackOptions options) => ArkUnpack(options),
                             errors => 1),
 
-                    (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongAddAllOptions, SongOptions.SongImportOptions, SongOptions.SongRemoveOptions>(args.Skip(1))
+                    (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongAddAllOptions, SongOptions.SongImportOptions, SongOptions.SongRemoveOptions, SongOptions.SongRemoveCustomsOptions>(args.Skip(1))
                         .MapResult(
                             (SongOptions.SongListOptions options) => SongList(options),
                             (SongOptions.SongAddOptions options) => SongAdd(options),
                             (SongOptions.SongAddAllOptions options) => SongAdd(options),
                             (SongOptions.SongImportOptions options) => SongImport(options),
                             (SongOptions.SongRemoveOptions options) => SongRemove(options),
+                            (SongOptions.SongRemoveCustomsOptions options) => SongRemove(options),
                             errors => 1),
 
                     (TweakOptions options) => ProcessTweak(options, args.Skip(1).ToArray()),
@@ -154,6 +155,15 @@ namespace AmpHelper.CLI
             }
 
             Song.RemoveSong(options.InputPath, options.SongName, options.Delete, options.ConsoleType, WriteLog);
+
+            return 0;
+        });
+
+        private static int SongRemove(SongOptions.SongRemoveCustomsOptions options) => ErrorWrap(() =>
+        {
+            var songs = Song.GetSongs(options.InputPath, options.ConsoleType).Where(e => e.BaseSong == false && e.Special == false).Select(e => e.ID).ToArray();
+
+            Song.RemoveSong(options.InputPath, songs, false, options.ConsoleType, WriteLog);
 
             return 0;
         });

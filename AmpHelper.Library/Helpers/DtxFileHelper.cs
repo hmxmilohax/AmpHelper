@@ -25,11 +25,18 @@ namespace AmpHelper.Helpers
         /// </summary>
         /// <param name="file">Path to the dta or dtb file.</param>
         /// <param name="func">A function that is executed when <see cref="Run(bool)"/> is invoked.</param>
-        public DtxFileHelper(string file, Func<DataArray, T> func) : base(File.OpenRead(file), func)
+        public DtxFileHelper(string file, Func<DataArray, T> func = null) : base(File.OpenRead(file), func)
         {
             Filename = file;
             DtxStream.Dispose();
             DtxStream = null;
+        }
+
+        public new DtxFileHelper<T> SetFunc(Func<DataArray, T> func = null)
+        {
+            base.SetFunc(func);
+
+            return this;
         }
 
         /// <summary>

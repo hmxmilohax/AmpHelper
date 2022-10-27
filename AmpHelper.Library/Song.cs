@@ -318,15 +318,9 @@ namespace AmpHelper
         /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
         public static void AddAllSongs(DirectoryInfo unpackedPath, ConsoleType consoleType, ProgressAction Log = null)
         {
-            var songs = GetSongs(unpackedPath, consoleType, Log).Where(e => e.InGame == false && e.Special == false).Select(e => Path.GetFileNameWithoutExtension(e.MoggSongPath)).OrderBy(e => e).ToArray();
+            var songs = GetSongs(unpackedPath, consoleType, Log).Where(e => e.InGame == false && e.Special == false).Select(e => e.ID).ToArray();
 
-            Log?.Invoke(null, 0, songs.Length);
-
-            foreach (var (song, index) in songs.Select((e, i) => (e, i)))
-            {
-                AddSong(unpackedPath, song, consoleType);
-                Log?.Invoke($"Added {song}", index + 1, songs.Length);
-            }
+            AddSong(unpackedPath, songs, consoleType, Log);
         }
         #endregion
 
@@ -379,12 +373,23 @@ namespace AmpHelper
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="DtxException"></exception>
-        public static void AddSong(DirectoryInfo unpackedPath, string songName, ConsoleType consoleType, ProgressAction Log = null)
+        public static void AddSong(DirectoryInfo unpackedPath, string songName, ConsoleType consoleType, ProgressAction Log = null) => AddSong(unpackedPath, new string[] { songName }, consoleType, Log);
+
+        /// <summary>
+        /// Adds a series of songs already present in the songs folder of the game files into the amp_config and amp_songs_config files.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songNames">The names of the songs to add.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DtxException"></exception>
+        public static void AddSong(DirectoryInfo unpackedPath, string[] songNames, ConsoleType consoleType, ProgressAction Log = null)
         {
             var paths = new AmplitudePaths(unpackedPath.FullName, consoleType);
-            var songPath = Path.GetFullPath(Path.Combine(paths.Songs, songName));
             var platform = consoleType.ToString().ToLower();
-            var targetToken = songName.ToUpper();
 
             if (unpackedPath == null)
             {
@@ -394,11 +399,6 @@ namespace AmpHelper
             if (!unpackedPath.Exists)
             {
                 throw new DirectoryNotFoundException(unpackedPath.FullName);
-            }
-
-            if (string.IsNullOrEmpty(songName))
-            {
-                throw new ArgumentNullException(nameof(songName));
             }
 
             if (!File.Exists(paths.Config))
@@ -411,94 +411,113 @@ namespace AmpHelper
                 throw new FileNotFoundException(paths.SongsConfig);
             }
 
-            RemoveSong(unpackedPath, songName, false);
+            RemoveSong(unpackedPath, songNames, false, consoleType);
 
-            if (!Directory.Exists(songPath))
+            var configHelper = new DtxFileHelper<object>(paths.Config);
+            var songsConfigHelper = new DtxFileHelper<object>(paths.SongsConfig);
+
+            foreach (var (songName, index) in songNames.Select((item, index) => (item, index)))
             {
-                throw new DirectoryNotFoundException(songPath);
+                var songPath = Path.GetFullPath(Path.Combine(paths.Songs, songName));
+                var targetToken = songName.ToUpper();
+
+                if (string.IsNullOrEmpty(songName))
+                {
+                    throw new ArgumentNullException(nameof(songName));
+                }
+
+                if (!Directory.Exists(songPath))
+                {
+                    throw new DirectoryNotFoundException(songPath);
+                }
+
+                ValidateSong(songPath, songName, true);
+
+                foreach (var ext in new string[] { $"mid_{platform}", $"png.dta_dta_{platform}", $"png_{platform}" })
+                {
+                    var donorFile = Path.Combine(paths.Songs, "tut0", $"tut0.{ext}");
+                    var destFile = Path.Combine(paths.Songs, songName, $"{songName}.{ext}");
+
+                    if (!File.Exists(destFile))
+                    {
+                        File.Copy(donorFile, destFile);
+                    }
+                }
+
+                var moggSong = MoggSong.FromMoggsong(Path.Combine(songPath, $"{songName}.moggsong"));
+                moggSong.MoggPath = $"{songName}.mogg";
+                moggSong.MidiPath = $"{songName}.mid";
+                var dtx = moggSong.ToDtx();
+
+                using (var dtbStream = File.Create(Path.Combine(songPath, $"{songName}.moggsong_dta_{platform}")))
+                {
+                    DTX.ToDtb(dtx, dtbStream, 3, false);
+                }
+
+                Midi.PatchMidi(Path.Combine(songPath, $"{songName}.mid_{platform}"), (float)moggSong.Bpm, consoleType);
+
+                configHelper.SetFunc(dtx =>
+                {
+                    var dbNode = dtx.FindArrayByChild("db").FirstOrDefault();
+                    var unlockTokensNode = dbNode.FindArrayByChild("unlock_tokens").FirstOrDefault();
+                    var campaignNode = dbNode.FindArrayByChild("campaign").FirstOrDefault();
+
+                    if (dbNode == null)
+                    {
+                        throw new DtxException("db node not found in amp_config");
+                    }
+
+                    if (unlockTokensNode == null)
+                    {
+                        throw new DtxException("unlock_tokens node not found in amp_config");
+                    }
+
+                    if (campaignNode == null)
+                    {
+                        throw new DtxException("campaign node not found in amp_config");
+                    }
+
+                    var unlockTokenNode = new DataArray();
+                    unlockTokenNode.AddNode(DataSymbol.Symbol(targetToken));
+                    unlockTokenNode.AddNode(DataSymbol.Symbol(moggSong.Title));
+                    unlockTokenNode.AddNode(DataSymbol.Symbol("unlock_extra"));
+                    unlockTokenNode.AddNode(DataSymbol.Symbol("unlock_extra_desc"));
+                    unlockTokenNode.AddNode(DataSymbol.Symbol("ui/textures/black_square.png"));
+                    unlockTokenNode.AddNode(DataSymbol.Symbol("CAMPVO_song_extra"));
+                    unlockTokensNode.AddNode(unlockTokenNode);
+
+                    var campaignUnlockNode = new DataArray();
+                    campaignUnlockNode.AddNode(DataSymbol.Symbol("beat_num"));
+                    campaignUnlockNode.AddNode(new DataAtom(0));
+                    campaignUnlockNode.AddNode(DataSymbol.Symbol("kUnlockArena"));
+                    campaignUnlockNode.AddNode(DataSymbol.Symbol(targetToken));
+                    campaignNode.AddNode(campaignUnlockNode);
+
+                    return null;
+                }).Run();
+
+                songsConfigHelper.SetFunc(dtx =>
+                {
+                    var node = dtx.Children.OfType<DataArray>().Where(e => e.Children.Count > 1 && e[0].ToString().StartsWith("World")).OrderBy(e => e.Children.Count).First();
+                    var songNode = new DataArray();
+                    songNode.AddNode(DataSymbol.Symbol(targetToken));
+                    songNode.AddNode(new DataInclude($"../Songs/{songName}/{songName}.moggsong"));
+                    var typeNode = new DataArray();
+                    typeNode.AddNode(DataSymbol.Symbol("type"));
+                    typeNode.AddNode(DataSymbol.Symbol("kSongExtra"));
+                    songNode.AddNode(typeNode);
+                    node.AddNode(songNode);
+
+                    return null;
+                }).Run();
+
+                Log?.Invoke($"Added {songName}", index, songNames.Length);
             }
 
-            ValidateSong(songPath, songName, true);
+            configHelper.Rebuild().Dispose();
+            songsConfigHelper.Rebuild().Dispose();
 
-            foreach (var ext in new string[] { $"mid_{platform}", $"png.dta_dta_{platform}", $"png_{platform}" })
-            {
-                var donorFile = Path.Combine(paths.Songs, "tut0", $"tut0.{ext}");
-                var destFile = Path.Combine(paths.Songs, songName, $"{songName}.{ext}");
-
-                if (!File.Exists(destFile))
-                {
-                    File.Copy(donorFile, destFile);
-                }
-            }
-
-            var moggSong = MoggSong.FromMoggsong(Path.Combine(songPath, $"{songName}.moggsong"));
-            moggSong.MoggPath = $"{songName}.mogg";
-            moggSong.MidiPath = $"{songName}.mid";
-            var dtx = moggSong.ToDtx();
-
-            using (var dtbStream = File.Create(Path.Combine(songPath, $"{songName}.moggsong_dta_{platform}")))
-            {
-                DTX.ToDtb(dtx, dtbStream, 3, false);
-            }
-
-            Midi.PatchMidi(Path.Combine(songPath, $"{songName}.mid_{platform}"), (float)moggSong.Bpm, consoleType);
-
-            new DtxFileHelper<object>(paths.Config, dtx =>
-            {
-                var dbNode = dtx.FindArrayByChild("db").FirstOrDefault();
-                var unlockTokensNode = dbNode.FindArrayByChild("unlock_tokens").FirstOrDefault();
-                var campaignNode = dbNode.FindArrayByChild("campaign").FirstOrDefault();
-
-                if (dbNode == null)
-                {
-                    throw new DtxException("db node not found in amp_config");
-                }
-
-                if (unlockTokensNode == null)
-                {
-                    throw new DtxException("unlock_tokens node not found in amp_config");
-                }
-
-                if (campaignNode == null)
-                {
-                    throw new DtxException("campaign node not found in amp_config");
-                }
-
-                var unlockTokenNode = new DataArray();
-                unlockTokenNode.AddNode(DataSymbol.Symbol(targetToken));
-                unlockTokenNode.AddNode(DataSymbol.Symbol(moggSong.Title));
-                unlockTokenNode.AddNode(DataSymbol.Symbol("unlock_extra"));
-                unlockTokenNode.AddNode(DataSymbol.Symbol("unlock_extra_desc"));
-                unlockTokenNode.AddNode(DataSymbol.Symbol("ui/textures/black_square.png"));
-                unlockTokenNode.AddNode(DataSymbol.Symbol("CAMPVO_song_extra"));
-                unlockTokensNode.AddNode(unlockTokenNode);
-
-                var campaignUnlockNode = new DataArray();
-                campaignUnlockNode.AddNode(DataSymbol.Symbol("beat_num"));
-                campaignUnlockNode.AddNode(new DataAtom(0));
-                campaignUnlockNode.AddNode(DataSymbol.Symbol("kUnlockArena"));
-                campaignUnlockNode.AddNode(DataSymbol.Symbol(targetToken));
-                campaignNode.AddNode(campaignUnlockNode);
-
-                return null;
-            }).Run().Rebuild().Dispose();
-
-            new DtxFileHelper<object>(paths.SongsConfig, dtx =>
-            {
-                var node = dtx.Children.OfType<DataArray>().Where(e => e.Children.Count > 1 && e[0].ToString().StartsWith("World")).OrderBy(e => e.Children.Count).First();
-                var songNode = new DataArray();
-                songNode.AddNode(DataSymbol.Symbol(targetToken));
-                songNode.AddNode(new DataInclude($"../Songs/{songName}/{songName}.moggsong"));
-                var typeNode = new DataArray();
-                typeNode.AddNode(DataSymbol.Symbol("type"));
-                typeNode.AddNode(DataSymbol.Symbol("kSongExtra"));
-                songNode.AddNode(typeNode);
-                node.AddNode(songNode);
-
-                return null;
-            }).Run().Rebuild().Dispose();
-
-            Log?.Invoke($"Added {songName}", 1, 1);
+            Log?.Invoke("Rebuilt config files", 1, 1);
         }
         #endregion
 
@@ -551,7 +570,20 @@ namespace AmpHelper
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="FileNotFoundException"></exception>
-        public static void RemoveSong(DirectoryInfo unpackedPath, string songName, bool delete, ConsoleType consoleType, ProgressAction Log = null)
+        public static void RemoveSong(DirectoryInfo unpackedPath, string songName, bool delete, ConsoleType consoleType, ProgressAction Log = null) => RemoveSong(unpackedPath, new string[] { songName }, delete, consoleType, Log);
+
+        /// <summary>
+        /// Renives a series of songs from the game data.
+        /// </summary>
+        /// <param name="unpackedPath">Path to the unpacked files.</param>
+        /// <param name="songNames">The namse of the songs to remove.</param>
+        /// <param name="delete">If the song path should be deleted from the game files.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="Log">A <see cref="ProgressAction"/> for tracking progress.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
+        public static void RemoveSong(DirectoryInfo unpackedPath, string[] songNames, bool delete, ConsoleType consoleType, ProgressAction Log = null)
         {
 
             var paths = new AmplitudePaths(unpackedPath.FullName, consoleType);
@@ -566,11 +598,6 @@ namespace AmpHelper
                 throw new DirectoryNotFoundException(unpackedPath.FullName);
             }
 
-            if (string.IsNullOrEmpty(songName))
-            {
-                throw new ArgumentNullException(nameof(songName));
-            }
-
             if (!File.Exists(paths.Config))
             {
                 throw new FileNotFoundException(paths.Config);
@@ -583,36 +610,52 @@ namespace AmpHelper
 
             var songs = GetSongs(unpackedPath, consoleType);
 
-            var targetToken = songs.Where(song => song.ID == songName)?.FirstOrDefault()?.NodeId ?? songName.ToUpper();
+            DtxFileHelper<object> configHelper = new DtxFileHelper<object>(paths.Config);
+            DtxFileHelper<object> songConfigHelper = new DtxFileHelper<object>(paths.SongsConfig);
 
-            new DtxFileHelper<object>(paths.Config, dtx =>
+            foreach (var (songName, index) in songNames.Select((item, index) => (item, index)))
             {
-                var dbNode = dtx.FindArrayByChild("db").FirstOrDefault();
-                var unlockTokensNode = dbNode.FindArrayByChild("unlock_tokens").FirstOrDefault();
-                var campaignNode = dbNode.FindArrayByChild("campaign").FirstOrDefault();
-
-                unlockTokensNode.DeleteDataArraysByValue(targetToken);
-                campaignNode.DeleteDataArraysByValue(3, targetToken);
-
-                return null;
-            }).Run().Rebuild().Dispose();
-
-            new DtxFileHelper<object>(paths.SongsConfig, dtx =>
-            {
-                foreach (var world in dtx.Children.OfType<DataArray>().Where(e => e.Children.Count > 1))
+                if (string.IsNullOrEmpty(songName))
                 {
-                    world.DeleteDataArraysByValue(targetToken);
+                    throw new ArgumentNullException(nameof(songName));
                 }
 
-                return null;
-            }).Run().Rebuild().Dispose();
+                var targetToken = songs.Where(song => song.ID == songName)?.FirstOrDefault()?.NodeId ?? songName.ToUpper();
 
-            if (delete && Directory.Exists(Path.Combine(paths.Songs, songName)))
-            {
-                Directory.Delete(Path.Combine(paths.Songs, songName), true);
+                configHelper.SetFunc(dtx =>
+                {
+                    var dbNode = dtx.FindArrayByChild("db").FirstOrDefault();
+                    var unlockTokensNode = dbNode.FindArrayByChild("unlock_tokens").FirstOrDefault();
+                    var campaignNode = dbNode.FindArrayByChild("campaign").FirstOrDefault();
+
+                    unlockTokensNode.DeleteDataArraysByValue(targetToken);
+                    campaignNode.DeleteDataArraysByValue(3, targetToken);
+
+                    return null;
+                }).Run();
+
+                songConfigHelper.SetFunc(dtx =>
+                {
+                    foreach (var world in dtx.Children.OfType<DataArray>().Where(e => e.Children.Count > 1))
+                    {
+                        world.DeleteDataArraysByValue(targetToken);
+                    }
+
+                    return null;
+                }).Run();
+
+                if (delete && Directory.Exists(Path.Combine(paths.Songs, songName)))
+                {
+                    Directory.Delete(Path.Combine(paths.Songs, songName), true);
+                }
+
+                Log?.Invoke($"Removed {songName}", index, songNames.Length);
             }
 
-            Log?.Invoke($"Removed {songName}", 1, 1);
+            configHelper.Rebuild().Dispose();
+            songConfigHelper.Rebuild().Dispose();
+
+            Log?.Invoke("Rebuilt config files", 1, 1);
         }
         #endregion
 
