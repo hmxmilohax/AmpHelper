@@ -265,7 +265,7 @@ namespace AmpHelper.Types
         public int? BossLevel { get; set; }
 
         /// <summary>
-        /// The bytes for the DTX file used to create this instance if created with <see cref="FromDtx(DataArray)"/>, <see cref="FromMoggsong(FileInfo)"/>, <see cref="FromMoggsong(Stream, bool)"/>, <see cref="FromMoggsong(string)"/>, or <see cref="FromMoggsongString(string)"/>.
+        /// The bytes for the DTX file used to create this instance if created with <see cref="FromDtx(DataArray)"/>, <see cref="FromMoggSong(FileInfo)"/>, <see cref="FromMoggSong(Stream, bool)"/>, <see cref="FromMoggsong(string)"/>, or <see cref="FromMoggSongString(string)"/>.
         /// </summary>
         [JsonIgnore()]
         public byte[] DtxBytes { get; set; }
@@ -277,7 +277,7 @@ namespace AmpHelper.Types
         public string NodeId { get; internal set; }
 
         /// <summary>
-        /// The path to the mogg file when parsed with <see cref="MoggSong.FromMoggsong(string)"/>, or <see cref="MoggSong.FromMoggsong(FileInfo)"/>.
+        /// The path to the mogg file when parsed with <see cref="MoggSong.FromMoggsong(string)"/>, or <see cref="MoggSong.FromMoggSong(FileInfo)"/>.
         /// </summary>
         [JsonPropertyName("moggsong_path")]
         public string MoggSongPath { get; internal set; }
@@ -376,7 +376,7 @@ namespace AmpHelper.Types
         /// </summary>
         /// <param name="dta">The dta string.</param>
         /// <returns></returns>
-        public static MoggSong FromMoggsongString(string dta) => FromDtx(DtxCS.DTX.FromDtaString(dta));
+        public static MoggSong FromMoggSongString(string dta) => FromDtx(DtxCS.DTX.FromDtaString(dta));
 
         /// <summary>
         /// Returns an instance of <see cref="MoggSong"/> initialized from a dta/dtb file.
@@ -385,7 +385,7 @@ namespace AmpHelper.Types
         /// <returns></returns>
         public static MoggSong FromMoggsong(string path)
         {
-            var song = FromMoggsong(File.OpenRead(path), true);
+            var song = FromMoggSong(File.OpenRead(path), true);
             song.MoggSongPath = Path.GetFullPath(path);
 
             return song;
@@ -396,9 +396,9 @@ namespace AmpHelper.Types
         /// </summary>
         /// <param name="path">The dta/dtb <see cref="FileInfo"/>.</param>
         /// <returns></returns>
-        public static MoggSong FromMoggsong(FileInfo path)
+        public static MoggSong FromMoggSong(FileInfo path)
         {
-            var song = FromMoggsong(path.OpenRead(), true);
+            var song = FromMoggSong(path.OpenRead(), true);
             song.MoggSongPath = Path.GetFullPath(path.FullName);
 
             return song;
@@ -410,7 +410,7 @@ namespace AmpHelper.Types
         /// <param name="dtxStream">A seekable stream with dta/dtb data.</param>
         /// <param name="dispose">Whether or not to dispose the stream.</param>
         /// <returns></returns>
-        public static MoggSong FromMoggsong(Stream dtxStream, bool dispose = false) => new DtxStreamHelper<MoggSong>(dtxStream, (dtx) => new MoggSong(dtx)).Run(dispose).ReturnValue;
+        public static MoggSong FromMoggSong(Stream dtxStream, bool dispose = false) => new DtxStreamHelper<MoggSong>(dtxStream, (dtx) => new MoggSong(dtx)).Run(dispose).ReturnValue;
 
         /// <summary>
         /// Returns an instance of <see cref="MoggSong"/> initialized from a DataArray.
