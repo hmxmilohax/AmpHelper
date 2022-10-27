@@ -316,11 +316,13 @@ namespace AmpHelper.Types
         /// <param name="dtx">The input <see cref="DataArray"/>.</param>
         public MoggSong(DataArray dtx) : base()
         {
-            MoggPath = dtx.FindArrayByChild("mogg_path").FirstOrDefault()?.GetChild<string>(1);
-            MidiPath = dtx.FindArrayByChild("midi_path").FirstOrDefault()?.GetChild<string>(1);
-            Length = int.Parse(dtx.FindArrayByChild("song_info").FirstOrDefault()?.FindArrayByChild("length").FirstOrDefault().GetChild<string>(1)?.Split(":").FirstOrDefault() ?? "0");
-            CountIn = int.Parse(dtx.FindArrayByChild("song_info").FirstOrDefault()?.FindArrayByChild("countin").FirstOrDefault()?.GetChild<string>(1) ?? "0");
-            Tracks = dtx.FindArrayByChild("tracks").FirstOrDefault()?.GetChild(1, trackDtx =>
+            var dtxDict = dtx.PopulateNodeDictionary();
+
+            MoggPath = dtxDict.GetValueOrDefault("/mogg_path")?.GetChild<string>(1);
+            MidiPath = dtxDict.GetValueOrDefault("/midi_path")?.GetChild<string>(1);
+            Length = int.Parse(dtxDict.GetValueOrDefault("/song_info/length")?.GetChild<string>(1)?.Split(":").FirstOrDefault() ?? "0");
+            CountIn = int.Parse(dtxDict.GetValueOrDefault("/song_info/countin")?.GetChild<string>(1) ?? "0");
+            Tracks = dtxDict.GetValueOrDefault("/tracks")?.GetChild(1, trackDtx =>
             {
                 var tracks = new List<Track>();
 
@@ -341,25 +343,25 @@ namespace AmpHelper.Types
 
                 return tracks;
             }) ?? new List<Track>();
-            Pans = dtx.FindArrayByChild("pans").FirstOrDefault()?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o), 0)).ToList() ?? new List<double>();
-            Volumes = dtx.FindArrayByChild("vols").FirstOrDefault()?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o), 0)).ToList() ?? new List<double>();
-            Attenuation = dtx.FindArrayByChild("active_track_db").FirstOrDefault()?.Children.Skip(1).Select(e => e.ToString().Transform(o => double.Parse((string)o), 0))?.ToList() ?? new List<double>();
-            ArenaPath = dtx.FindArrayByChild("arena_path").FirstOrDefault()?.GetChild<string>(1);
-            TunnelScale = dtx.FindArrayByChild("tunnel_scale").FirstOrDefault()?.GetChild<double>(1, e => double.Parse(e.ToString()));
-            EnableOrder = dtx.FindArrayByChild("enable_order").FirstOrDefault()?.GetChild<DataArray>(1)?.Children.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0)).ToList() ?? new List<int>();
-            SectionStartBars = dtx.FindArrayByChild("section_start_bars").FirstOrDefault()?.Children.Skip(1)?.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0))?.ToList() ?? new List<int>();
-            Title = dtx.FindArrayByChild("title").FirstOrDefault()?.GetChild<string>(1);
-            ShortTitle = dtx.FindArrayByChild("title_short").FirstOrDefault()?.GetChild<string>(1);
-            Artist = dtx.FindArrayByChild("artist").FirstOrDefault()?.GetChild<string>(1);
-            ShortArtist = dtx.FindArrayByChild("artist_short").FirstOrDefault()?.GetChild<string>(1);
-            Description = dtx.FindArrayByChild("desc").FirstOrDefault()?.GetChild<string>(1);
-            RawUnlockRequirement = dtx.FindArrayByChild("unlock_requirement").FirstOrDefault()?.GetChild<string>(1);
-            Bpm = dtx.FindArrayByChild("bpm").FirstOrDefault()?.GetChild<double>(1, e => double.Parse(e.ToString()));
-            Charter = dtx.FindArrayByChild("charter").FirstOrDefault()?.GetChild<string>(1)?.Trim();
-            DemoVideo = dtx.FindArrayByChild("demo_video").FirstOrDefault()?.GetChild<string>(1)?.Trim();
-            PreviewStart = dtx.FindArrayByChild("preview_start_ms").FirstOrDefault()?.GetChild<int>(1, e => int.Parse(e.ToString()));
-            PreviewLength = dtx.FindArrayByChild("preview_length_ms").FirstOrDefault()?.GetChild<int>(1, e => int.Parse(e.ToString()));
-            BossLevel = dtx.FindArrayByChild("boss_level").FirstOrDefault()?.GetChild<int>(1, e => int.Parse(e.ToString()));
+            Pans = dtxDict.GetValueOrDefault("/pans")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o), 0)).ToList() ?? new List<double>();
+            Volumes = dtxDict.GetValueOrDefault("/vols")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o), 0)).ToList() ?? new List<double>();
+            Attenuation = dtxDict.GetValueOrDefault("/active_track_db")?.Children.Skip(1).Select(e => e.ToString().Transform(o => double.Parse((string)o), 0))?.ToList() ?? new List<double>();
+            ArenaPath = dtxDict.GetValueOrDefault("/arena_path")?.GetChild<string>(1);
+            TunnelScale = dtxDict.GetValueOrDefault("/tunnel_scale")?.GetChild<double>(1, e => double.Parse(e.ToString()));
+            EnableOrder = dtxDict.GetValueOrDefault("/enable_order")?.GetChild<DataArray>(1)?.Children.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0)).ToList() ?? new List<int>();
+            SectionStartBars = dtxDict.GetValueOrDefault("/section_start_bars")?.Children.Skip(1)?.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0))?.ToList() ?? new List<int>();
+            Title = dtxDict.GetValueOrDefault("/title")?.GetChild<string>(1);
+            ShortTitle = dtxDict.GetValueOrDefault("/title_short")?.GetChild<string>(1);
+            Artist = dtxDict.GetValueOrDefault("/artist")?.GetChild<string>(1);
+            ShortArtist = dtxDict.GetValueOrDefault("/artist_short")?.GetChild<string>(1);
+            Description = dtxDict.GetValueOrDefault("/desc")?.GetChild<string>(1);
+            RawUnlockRequirement = dtxDict.GetValueOrDefault("/unlock_requirement")?.GetChild<string>(1);
+            Bpm = dtxDict.GetValueOrDefault("/bpm")?.GetChild<double>(1, e => double.Parse(e.ToString()));
+            Charter = dtxDict.GetValueOrDefault("/charter")?.GetChild<string>(1)?.Trim();
+            DemoVideo = dtxDict.GetValueOrDefault("/demo_video")?.GetChild<string>(1)?.Trim();
+            PreviewStart = dtxDict.GetValueOrDefault("/preview_start_ms")?.GetChild<int>(1, e => int.Parse(e.ToString()));
+            PreviewLength = dtxDict.GetValueOrDefault("/preview_length_ms")?.GetChild<int>(1, e => int.Parse(e.ToString()));
+            BossLevel = dtxDict.GetValueOrDefault("/boss_level")?.GetChild<int>(1, e => int.Parse(e.ToString()));
 
             using (var ms = new MemoryStream())
             {

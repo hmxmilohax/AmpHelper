@@ -1,6 +1,16 @@
 # AmpHelper
-AmpHelper is both a library and command line tool for unpacking/repacking Amplitude (2016) ark files as well as managing custom songs.
 
-Included are also a couple tweaks that modify the game files in various ways.
+AmpHelper is a C# library designed to modify Amplitude (2016) in various ways.
 
-The aim is to provide the same functionality as [Adam Clixby's Modulate](https://github.com/AdamClixby/Modulate/), but with a C# codebase.
+Also available is a CLI implementing this library.
+
+This was based on [Modulate by Adam Clixby](https://github.com/adamclixby/Modulate/).
+
+## Functionality
+
+AmpHelper can do a number of tasks including packing and unpacking of ark files, adding, removing, and importing songs, as well as applying tweaks to the game.
+
+## Attributions
+- [Modulate by Adam Clixby](https://github.com/adamclixby/modulate/).
+- [DtxCs by Maxton](https://github.com/maxton/DtxCS) and [Emma](https://github.com/InvoxiPlayGames/DtxCS)
+- [Mackiloha by PikminGuts92](https://github.com/PikminGuts92/Mackiloha)
