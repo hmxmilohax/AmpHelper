@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace AmpHelper
 {
@@ -26,6 +27,45 @@ namespace AmpHelper
             ".moggsong",
             ".script"
         };
+
+        #region PackAsync
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task PackAsync(string inputPath, string headerFile, ProgressAction progress = null) => Task.Run(() => Pack(inputPath, headerFile, progress));
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType"></param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task PackAsync(string inputPath, string headerFile, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Pack(inputPath, headerFile, consoleType, progress));
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task PackAsync(DirectoryInfo inputPath, FileInfo headerFile, ProgressAction progress = null) => Task.Run(() => Pack(inputPath, headerFile, progress));
+
+        /// <summary>
+        /// Packs a directory into ark files and a header.
+        /// </summary>
+        /// <param name="inputPath">The path to the unpacked files.</param>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="NotSupportedException"></exception>
+        public static Task PackAsync(DirectoryInfo inputPath, FileInfo headerFile, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Pack(inputPath, headerFile, consoleType, progress));
+        #endregion
 
         /// <summary>
         /// Packs a directory into ark files and a header.
@@ -220,6 +260,50 @@ namespace AmpHelper
 
             return filePath;
         }
+
+        #region UnpackAsync
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task UnpackAsync(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction progress = null) => Task.Run(() => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, progress));
+
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task UnpackAsync(string headerFile, string outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, consoleType, progress));
+
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task UnpackAsync(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ProgressAction progress = null) => Task.Run(() => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, progress));
+
+        /// <summary>
+        /// Unpacks ark files and a header file to a directory.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="outputPath">The path to unpack the files to.</param>
+        /// <param name="dtbConversion">Convert dtb files to dta.</param>
+        /// <param name="keepOriginalDtb">Keep the original dtb files</param>
+        /// <param name="consoleType">The console type</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        public static Task UnpackAsync(FileInfo headerFile, DirectoryInfo outputPath, bool dtbConversion, bool keepOriginalDtb, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Unpack(headerFile, outputPath, dtbConversion, keepOriginalDtb, consoleType, progress));
+        #endregion
 
         /// <summary>
         /// Unpacks ark files and a header file to a directory.
