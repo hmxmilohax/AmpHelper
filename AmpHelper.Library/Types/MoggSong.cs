@@ -510,12 +510,12 @@ namespace AmpHelper.Types
 
                 if ((innerNode = GetOrDeleteArray(node, "length", knownNodes.GetValueOrDefault("/song_info/length"), Length)) != null)
                 {
-                    innerNode.AddNode(DataSymbol.Symbol($"{Length.Value}:0:0"));
+                    innerNode.RemoveAllAfter(0).AddNode(DataSymbol.Symbol($"{Length.Value}:0:0"));
                 }
 
                 if ((innerNode = GetOrDeleteArray(node, "countin", knownNodes.GetValueOrDefault("/song_info/countin"), Length)) != null)
                 {
-                    innerNode.AddNode(new DataAtom(CountIn.Value));
+                    innerNode.RemoveAllAfter(0).AddNode(new DataAtom(CountIn.Value));
                 }
             }
 
