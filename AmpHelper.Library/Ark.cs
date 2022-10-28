@@ -33,7 +33,7 @@ namespace AmpHelper
         /// <param name="inputPath">The path to the unpacked files.</param>
         /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
         /// <param name="progress">An action that will be invoked with a message and the progress.</param>
-        public static void Pack(string inputPath, string headerFile, ProgressAction progress = null) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), HelperMethods.ConsoleTypeFromPath(inputPath, GamePathType.Packed), progress);
+        public static void Pack(string inputPath, string headerFile, ProgressAction progress = null) => Pack(new DirectoryInfo(inputPath), new FileInfo(headerFile), HelperMethods.ConsoleTypeFromPath(inputPath, GamePathType.Unpacked), progress);
 
         /// <summary>
         /// Packs a directory into ark files and a header.
@@ -50,7 +50,7 @@ namespace AmpHelper
         /// <param name="inputPath">The path to the unpacked files.</param>
         /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
         /// <param name="progress">An action that will be invoked with a message and the progress.</param>
-        public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ProgressAction progress = null) => Pack(inputPath, headerFile, HelperMethods.ConsoleTypeFromPath(inputPath.FullName, GamePathType.Packed), progress);
+        public static void Pack(DirectoryInfo inputPath, FileInfo headerFile, ProgressAction progress = null) => Pack(inputPath, headerFile, HelperMethods.ConsoleTypeFromPath(inputPath.FullName, GamePathType.Unpacked), progress);
 
         /// <summary>
         /// Packs a directory into ark files and a header.

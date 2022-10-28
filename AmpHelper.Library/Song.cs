@@ -72,12 +72,12 @@ namespace AmpHelper
         {
             if (Directory.Exists(moggsong))
             {
-                ImportSong(new DirectoryInfo(unpackedPath), new DirectoryInfo(moggsong), replace, HelperMethods.ConsoleTypeFromPath(moggsong, GamePathType.Unpacked), Log);
+                ImportSong(new DirectoryInfo(unpackedPath), new DirectoryInfo(moggsong), replace, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
             }
             else if (File.Exists(moggsong))
             {
                 var info = new FileInfo(moggsong);
-                ImportSong(new DirectoryInfo(unpackedPath), info, replace, HelperMethods.ConsoleTypeFromPath(info.Directory.FullName, GamePathType.Unpacked), Log);
+                ImportSong(new DirectoryInfo(unpackedPath), info, replace, HelperMethods.ConsoleTypeFromPath(unpackedPath, GamePathType.Unpacked), Log);
             }
             else
             {
@@ -702,7 +702,7 @@ namespace AmpHelper
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="FileNotFoundException"></exception>
         /// <exception cref="DtxException"></exception>
-        public static MoggSong[] GetSongs(DirectoryInfo unpackedPath, ProgressAction Log = null) => GetSongs(unpackedPath, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName), Log);
+        public static MoggSong[] GetSongs(DirectoryInfo unpackedPath, ProgressAction Log = null) => GetSongs(unpackedPath, HelperMethods.ConsoleTypeFromPath(unpackedPath.FullName, GamePathType.Unpacked), Log);
 
         /// <summary>
         /// Gets a list of songs from the game data.
