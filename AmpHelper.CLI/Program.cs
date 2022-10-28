@@ -1,5 +1,4 @@
-﻿using AmpHelper.Attributes;
-using AmpHelper.Enums;
+﻿using AmpHelper.Enums;
 using AmpHelper.Helpers;
 using AmpHelper.Interfaces;
 using CommandLine;
@@ -172,27 +171,20 @@ namespace AmpHelper.CLI
         {
             var usageText = "Usage:\n  tweak <tweak> (status|enable|disable) <path to game files>\n\nThe following tweaks are available.";
             var type = typeof(ITweak);
-            (TweakInfo Info, Type TweakType)[] tweaks = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => type.IsAssignableFrom(p) && p.IsClass && !p.IsAbstract)
-                .Select(tweak =>
-                {
-                    var info = (Attribute.GetCustomAttribute(tweak, typeof(TweakInfo)) as TweakInfo) ?? new TweakInfo(tweak.GetType().Name, tweak.GetType().Name);
-                    return (info, tweak);
-                }).OrderBy(t => t.info.Verb).ToArray();
+            var tweaks = ITweak.GetTweaks().ToArray();
 
             var showTweaks = (string message) =>
             {
                 Console.WriteLine($"{message}\n");
 
-                Console.WriteLine(String.Join("\n\n", tweaks.Select(t => t.Info.Description == null ? t.Info.Verb : $"{t.Info.Verb}\n  {t.Info.Description}")));
+                Console.WriteLine(String.Join("\n\n", tweaks.Select(t => t.Description == null ? t.Verb : $"{t.Verb}\n  {t.Description}")));
 
                 return tweaks.Length;
             };
 
             if (args.Length == 0 || (args.Length == 1 && args[0].ToLower() == "help") || args.Length != 3 || (args.Length == 3 && args[1] != "status" && args[1] != "enable" && args[1] != "disable"))
             {
-                var firstVerb = tweaks[0].Info.Verb;
+                var firstVerb = tweaks[0].Verb;
 
                 return showTweaks(usageText);
             }
@@ -202,7 +194,7 @@ namespace AmpHelper.CLI
             var path = args[2];
             ConsoleType consoleType;
 
-            var matchedTweaks = tweaks.Where(t => t.Info.Verb == args[0]).ToArray();
+            var matchedTweaks = tweaks.Where(t => t.Verb == args[0]).ToArray();
 
             if (matchedTweaks.Length == 0)
             {
@@ -210,7 +202,7 @@ namespace AmpHelper.CLI
             }
 
             var info = matchedTweaks[0];
-            ITweak? tweak = Activator.CreateInstance(matchedTweaks[0].TweakType) as ITweak;
+            var tweak = info.CreateInstance(path);
 
             if (tweak == null)
             {
@@ -238,17 +230,17 @@ namespace AmpHelper.CLI
             {
                 case "status":
                     bool status = tweak.SetPath(path).IsEnabled();
-                    Console.WriteLine((status ? info.Info.EnabledText : info.Info.DisabledText) ?? $"The tweak is currently {(status ? "enabled" : "disabled")}");
+                    Console.WriteLine((status ? info.EnabledText : info.DisabledText) ?? $"The tweak is currently {(status ? "enabled" : "disabled")}");
                     return status ? 0 : 1;
 
                 case "enable":
                     tweak.SetPath(path).EnableTweak();
-                    Console.WriteLine(info.Info.EnableText ?? "Enabled the tweak.");
+                    Console.WriteLine(info.EnableText ?? "Enabled the tweak.");
                     return 0;
 
                 case "disable":
                     tweak.SetPath(path).DisableTweak();
-                    Console.WriteLine(info.Info.DisableText ?? "Disabled the tweak");
+                    Console.WriteLine(info.DisableText ?? "Disabled the tweak");
                     return 0;
 
                 default:

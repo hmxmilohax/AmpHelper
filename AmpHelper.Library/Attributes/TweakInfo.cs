@@ -10,37 +10,37 @@ namespace AmpHelper.Attributes
         /// <summary>
         /// The name of the tweak
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; protected set; }
 
         /// <summary>
         /// The verb used to activate the tweak
         /// </summary>
-        public string Verb { get; private set; }
+        public string Verb { get; protected set; }
 
         /// <summary>
         /// A description of the tweak
         /// </summary>
-        public string Description { get; private set; }
+        public string Description { get; protected set; }
 
         /// <summary>
         /// Text used when the tweak is enabled
         /// </summary>
-        public string EnableText { get; private set; }
+        public string EnableText { get; protected set; }
 
         /// <summary>
         /// Text used when the tweak is disabled
         /// </summary>
-        public string DisableText { get; private set; }
+        public string DisableText { get; protected set; }
 
         /// <summary>
         /// Status text used when the tweak has been enabled
         /// </summary>
-        public string EnabledText { get; private set; }
+        public string EnabledText { get; protected set; }
 
         /// <summary>
         /// Status text used when the tweak has been disabled
         /// </summary>
-        public string DisabledText { get; private set; }
+        public string DisabledText { get; protected set; }
 
         /// <summary>
         /// Instantiates a TweakInfo object.
@@ -62,5 +62,7 @@ namespace AmpHelper.Attributes
             this.EnabledText = EnabledText;
             this.DisabledText = DisabledText;
         }
+
+        protected TweakInfo() { }
     }
 }
