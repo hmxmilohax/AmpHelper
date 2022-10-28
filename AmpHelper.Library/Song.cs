@@ -26,8 +26,15 @@ namespace AmpHelper
         /// <param name="throwError">Throw errors, or return them.</param>
         /// <returns>An <see cref="AggregateException"/> of <see cref="FileNotFoundException"/> exceptions encountered during validation, or null if there are none.</returns>
         /// <exception cref="AggregateException">Only thrown if throwError == true.</exception>
-        private static AggregateException ValidateSong(string path, string name, bool throwError = false)
+        public static AggregateException ValidateSong(string path, string name = null, bool throwError = false)
         {
+            var info = new DirectoryInfo(path);
+
+            if (name == null)
+            {
+                name = info.Name;
+            }
+
             var exceptions = new List<Exception>();
 
             foreach (var file in new string[] { "mogg", "mid", "moggsong" }.Select(e => Path.Combine(path, $"{name}.{e}")))
