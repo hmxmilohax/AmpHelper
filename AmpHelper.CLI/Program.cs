@@ -13,10 +13,11 @@ namespace AmpHelper.CLI
         {
             return Parser.Default.ParseArguments<ArkOptions, SongOptions, TweakOptions>(args)
                 .MapResult(
-                    (ArkOptions options) => Parser.Default.ParseArguments<ArkOptions.ArkPackOptions, ArkOptions.ArkUnpackOptions>(args.Skip(1))
+                    (ArkOptions options) => Parser.Default.ParseArguments<ArkOptions.ArkPackOptions, ArkOptions.ArkUnpackOptions, ArkOptions.ArkCompactOptions>(args.Skip(1))
                         .MapResult(
                             (ArkOptions.ArkPackOptions options) => ArkPack(options),
                             (ArkOptions.ArkUnpackOptions options) => ArkUnpack(options),
+                            (ArkOptions.ArkCompactOptions options) => ArkCompact(options),
                             errors => 1),
 
                     (SongOptions options) => Parser.Default.ParseArguments<SongOptions.SongListOptions, SongOptions.SongAddOptions, SongOptions.SongAddAllOptions, SongOptions.SongImportOptions, SongOptions.SongRemoveOptions, SongOptions.SongRemoveCustomsOptions>(args.Skip(1))
@@ -72,6 +73,13 @@ namespace AmpHelper.CLI
         private static int ArkUnpack(ArkOptions.ArkUnpackOptions options) => ErrorWrap(() =>
         {
             Ark.Unpack(options.InputHeader, options.OutputPath, options.DtbConversion, options.KeepOriginalDtb, options.ConsoleType, WriteLog);
+
+            return 0;
+        });
+
+        private static int ArkCompact(ArkOptions.ArkCompactOptions options) => ErrorWrap(() =>
+        {
+            Ark.Compact(options.InputHeader, options.ConsoleType, WriteLog);
 
             return 0;
         });

@@ -36,6 +36,15 @@ namespace AmpHelper.CLI
             public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
+        [Verb("compact", HelpText = "Compacts a set of ark files to reduce the number of arks and remove unreferenced data.")]
+        internal class ArkCompactOptions
+        {
+            [Value(0, Required = true, MetaName = "input hdr", HelpText = "Path to the input .hdr file")]
+            public FileInfo InputHeader { get; set; }
+
+            public ConsoleType ConsoleType => InputHeader.Name.ToLower() == "main_ps3.hdr" ? ConsoleType.PS3 : ConsoleType.PS4;
+        }
+
         [Option('d', "dtb2a", Hidden = true)]
         public bool _do_not_use_d { get; set; }
 

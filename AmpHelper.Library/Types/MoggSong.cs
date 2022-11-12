@@ -476,14 +476,6 @@ namespace AmpHelper.Types
                 {
                     dtx = DTX.FromDtb(ms);
                 }
-
-                foreach (var child in dtx.Children.OfType<DataArray>().Where(e => e.Children.Count >= 1))
-                {
-                    switch (child.Children[0].ToString())
-                    {
-
-                    }
-                }
             }
             else
             {

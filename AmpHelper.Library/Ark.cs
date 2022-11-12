@@ -120,8 +120,12 @@ namespace AmpHelper
             {
                 Directory.CreateDirectory(arkPath.FullName);
             }
+            else
+            {
+                HelperMethods.DeleteArk(headerFile.FullName);
+            }
 
-            uint arkPartSizeLimit = 1U * 1024 * 1024 * 1024;
+            uint arkPartSizeLimit = 2U * 1024 * 1024 * 1024;
             var ark = ArkFile.Create(headerFile.FullName, ArkVersion.V9, consoleType == ConsoleType.PS3 ? AmplitudeData.PS3Key : AmplitudeData.PS4Key);
 
             ark.ForcedXor = 0xFF;
@@ -414,6 +418,96 @@ namespace AmpHelper
                 filePath = ExtractEntry(ark, entry, CombinePath(outputPath.FullName, entry.FullPath));
                 progress?.Invoke($"Unpacked {entry.FullPath}", currentSize, totalSize);
             }
+        }
+        #endregion
+        #region Ark Compact
+        #region CompactAsync
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static Task CompactAsync(string headerFile, ProgressAction progress = null) => Task.Run(() => Compact(headerFile, progress));
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static Task CompactAsync(string headerFile, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Compact(headerFile, consoleType, progress));
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static Task CompactAsync(FileInfo headerFile, ProgressAction progress = null) => Task.Run(() => Compact(headerFile, progress));
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static Task CompactAsync(FileInfo headerFile, ConsoleType consoleType, ProgressAction progress = null) => Task.Run(() => Compact(headerFile, consoleType, progress));
+        #endregion
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void Compact(string headerFile, ProgressAction progress = null) => Compact(new FileInfo(headerFile), HelperMethods.ConsoleTypeFromPath(headerFile, GamePathType.Packed));
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void Compact(string headerFile, ConsoleType consoleType, ProgressAction progress = null) => Compact(new FileInfo(headerFile), consoleType, progress);
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void Compact(FileInfo headerFile, ProgressAction progress = null) => Compact(headerFile, HelperMethods.ConsoleTypeFromPath(headerFile.FullName, GamePathType.Packed));
+
+        /// <summary>
+        /// Unpacks and repacks an ark file to reduce the number of arks and remove unreferenced files.
+        /// </summary>
+        /// <param name="headerFile">The path to the main_ps3.hdr / main_ps4.hdr file.</param>
+        /// <param name="consoleType">The console type.</param>
+        /// <param name="progress">An action that will be invoked with a message and the progress.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void Compact(FileInfo headerFile, ConsoleType consoleType, ProgressAction progress = null)
+        {
+            if (!headerFile.Name.ToLower().EndsWith(".hdr"))
+            {
+                throw new ArgumentException("Header must have a .hdr extension");
+            }
+
+            using var temp = new EasyTempFolder();
+            var tempInfo = new DirectoryInfo(temp);
+
+            Unpack(headerFile, tempInfo, false, false, consoleType, (message, current, max) =>
+            {
+                progress?.Invoke(message, current, max * 2);
+            });
+
+            Pack(tempInfo, headerFile, consoleType, (message, current, max) =>
+            {
+                progress?.Invoke(message, max + current, max * 2);
+            });
         }
         #endregion
     }
