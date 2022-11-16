@@ -30,10 +30,18 @@ jobs:
       run: |
         cd AmpHelper.CLI
         dotnet publish -c Release -o ../publish/AmpHelper.CLI -r win-x64 -p:PublishSingleFile=true --self-contained=false
+        dotnet publish -c Release -o ../publish/AmpHelper.CLI.Self-Contained -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true
         
-    - name: Upload a Build Artifact
+    - name: Upload framework dependent build
       uses: actions/upload-artifact@v3.1.0
       with:
         name: "AmpHelper"
         path: publish/AmpHelper.CLI/AmpHelper.exe
+        retention-days: 90
+        
+    - name: Upload self-contained build
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: "AmpHelper"
+        path: publish/AmpHelper.CLI.Self-Contained/AmpHelper.exe
         retention-days: 90
