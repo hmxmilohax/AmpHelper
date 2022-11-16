@@ -36,3 +36,4 @@ jobs:
       with:
         name: "AmpHelper"
         path: publish/AmpHelper.CLI/AmpHelper.exe
+        retention-days: 90
