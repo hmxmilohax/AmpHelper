@@ -88,7 +88,7 @@ namespace AmpHelper.CLI
             public ConsoleType ConsoleType => Directory.Exists(Path.Combine(InputPath.FullName, "ps3")) ? ConsoleType.PS3 : ConsoleType.PS4;
         }
 
-        [Verb("remove-customs", HelpText = "Remove all custom songs from the dta files", Hidden = true)]
+        [Verb("remove-customs", HelpText = "Remove all custom songs from the dta files")]
         internal class SongRemoveCustomsOptions
         {
             [Value(0, Required = true, MetaName = "input path", HelpText = "Path to the unpacked files")]
