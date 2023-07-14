@@ -4,6 +4,7 @@ using AmpHelper.Helpers;
 using DtxCS;
 using DtxCS.DataTypes;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -343,11 +344,11 @@ namespace AmpHelper.Types
 
                 return tracks;
             }) ?? new List<Track>();
-            Pans = dtxDict.GetValueOrDefault("/pans")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => HelperMethods.ParseDoubleInvariant((string)o), 0)).ToList() ?? new List<double>();
-            Volumes = dtxDict.GetValueOrDefault("/vols")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => HelperMethods.ParseDoubleInvariant((string)o), 0)).ToList() ?? new List<double>();
-            Attenuation = dtxDict.GetValueOrDefault("/active_track_db")?.Children.Skip(1).Select(e => e.ToString().Transform(o => HelperMethods.ParseDoubleInvariant((string)o), 0))?.ToList() ?? new List<double>();
+            Pans = dtxDict.GetValueOrDefault("/pans")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o, provider: CultureInfo.InvariantCulture), 0)).ToList() ?? new List<double>();
+            Volumes = dtxDict.GetValueOrDefault("/vols")?.GetChild<DataArray>(1)?.Children?.Select(e => e.ToString().Transform(o => double.Parse((string)o, provider: CultureInfo.InvariantCulture), 0)).ToList() ?? new List<double>();
+            Attenuation = dtxDict.GetValueOrDefault("/active_track_db")?.Children.Skip(1).Select(e => e.ToString().Transform(o => double.Parse((string)o, provider: CultureInfo.InvariantCulture), 0))?.ToList() ?? new List<double>();
             ArenaPath = dtxDict.GetValueOrDefault("/arena_path")?.GetChild<string>(1);
-            TunnelScale = dtxDict.GetValueOrDefault("/tunnel_scale")?.GetChild<double>(1, e => HelperMethods.ParseDoubleInvariant(e.ToString()));
+            TunnelScale = dtxDict.GetValueOrDefault("/tunnel_scale")?.GetChild<double>(1, e => double.Parse(e.ToString(), provider: CultureInfo.InvariantCulture));
             EnableOrder = dtxDict.GetValueOrDefault("/enable_order")?.GetChild<DataArray>(1)?.Children.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0)).ToList() ?? new List<int>();
             SectionStartBars = dtxDict.GetValueOrDefault("/section_start_bars")?.Children.Skip(1)?.Select(e => e.ToString().Transform(o => int.Parse((string)o), 0))?.ToList() ?? new List<int>();
             Title = dtxDict.GetValueOrDefault("/title")?.GetChild<string>(1);
@@ -356,7 +357,7 @@ namespace AmpHelper.Types
             ShortArtist = dtxDict.GetValueOrDefault("/artist_short")?.GetChild<string>(1);
             Description = dtxDict.GetValueOrDefault("/desc")?.GetChild<string>(1);
             RawUnlockRequirement = dtxDict.GetValueOrDefault("/unlock_requirement")?.GetChild<string>(1);
-            Bpm = dtxDict.GetValueOrDefault("/bpm")?.GetChild<double>(1, e => HelperMethods.ParseDoubleInvariant(e.ToString()));
+            Bpm = dtxDict.GetValueOrDefault("/bpm")?.GetChild<double>(1, e => double.Parse(e.ToString(), provider: CultureInfo.InvariantCulture));
             Charter = dtxDict.GetValueOrDefault("/charter")?.GetChild<string>(1)?.Trim();
             DemoVideo = dtxDict.GetValueOrDefault("/demo_video")?.GetChild<string>(1)?.Trim();
             PreviewStart = dtxDict.GetValueOrDefault("/preview_start_ms")?.GetChild<int>(1, e => int.Parse(e.ToString()));
