@@ -2,12 +2,12 @@ name: Build artifact.
 
 on:
   push:
+    tags:
+      - "v*"
     branches: '*'
   pull_request:
     branches: '*'
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 1 * *'
 
 jobs:
 
@@ -21,6 +21,13 @@ jobs:
       with:
         submodules: recursive
 
+    # get version from pushed tag
+    - name: Extract version
+      if: startsWith(github.ref, 'refs/tags/v')
+      id: version
+      run: |
+        echo "TAG=${GITHUB_REF#refs/tags/}" >> ${GITHUB_OUTPUT}
+        echo "VERSION=${GITHUB_REF#refs/tags/v}" >> ${GITHUB_OUTPUT}
 
     # Install the .NET Core workload
     - name: Install .NET
@@ -48,3 +55,18 @@ jobs:
         name: "AmpHelper"
         path: publish/AmpHelper.CLI.Self-Contained/AmpHelper.exe
         retention-days: 90
+
+    # if we had a tag, we should make a release
+    - name: Upload release artifacts
+      if: startsWith(github.ref, 'refs/tags/v')
+      id: upload_file_release
+      uses: softprops/action-gh-release@v0.1.15
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        draft: false
+        generate_release_notes: true
+        files: |
+          ./publish/AmpHelper.CLI.Self-Contained/AmpHelper.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
