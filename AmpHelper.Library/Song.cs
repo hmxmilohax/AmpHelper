@@ -767,11 +767,19 @@ namespace AmpHelper
                 foreach (var ext in new string[] { $"mid_{platform}", $"png.dta_dta_{platform}", $"png_{platform}" })
                 {
                     var donorFile = Path.Combine(paths.Songs, donorSong, $"{donorSong}.{ext}");
+                    var backupDonorFile = Path.Combine(paths.Songs, "tut0", $"tut0.{ext}");
                     var destFile = Path.Combine(paths.Songs, songName, $"{songName}.{ext}");
 
                     if (!File.Exists(destFile))
                     {
-                        File.Copy(donorFile, destFile);
+                        if (File.Exists(donorFile))
+                        {
+                            File.Copy(donorFile, destFile);
+                        }
+                        else
+                        {
+                            File.Copy(backupDonorFile, destFile);
+                        }
                     }
                 }
                 
