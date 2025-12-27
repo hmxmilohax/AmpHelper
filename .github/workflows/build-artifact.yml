@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -31,7 +31,7 @@ jobs:
 
     # Install the .NET Core workload
     - name: Install .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 6.0.x
 
@@ -43,14 +43,14 @@ jobs:
         dotnet publish -c Release -o ../publish/AmpHelper.CLI.Self-Contained -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true
         
     - name: Upload framework dependent build
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v6
       with:
         name: "AmpHelper"
         path: publish/AmpHelper.CLI/AmpHelper.exe
         retention-days: 90
         
     - name: Upload self-contained build
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v6
       with:
         name: "AmpHelper"
         path: publish/AmpHelper.CLI.Self-Contained/AmpHelper.exe
