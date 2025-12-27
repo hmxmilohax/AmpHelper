@@ -45,14 +45,14 @@ jobs:
     - name: Upload framework dependent build
       uses: actions/upload-artifact@v6
       with:
-        name: "AmpHelper"
+        name: "AmpHelper-framework-dependent"
         path: publish/AmpHelper.CLI/AmpHelper.exe
         retention-days: 90
         
     - name: Upload self-contained build
       uses: actions/upload-artifact@v6
       with:
-        name: "AmpHelper"
+        name: "AmpHelper-self-contained"
         path: publish/AmpHelper.CLI.Self-Contained/AmpHelper.exe
         retention-days: 90
 
